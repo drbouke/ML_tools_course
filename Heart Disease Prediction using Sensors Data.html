@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Heart Disease Prediction using Sensors Data</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-light">
+
+<main class="container py-4">
+<div class="row justify-content-center">
+<div class="col-lg-10">
+
+<div class="card shadow-sm">
+<div class="card-body">
+
+<div class="d-flex justify-content-between align-items-center mb-2">
+<h1 class="h4 mb-0">Heart Disease Prediction using Sensors Data</h1>
+</div>
+
+<p class="text-secondary mb-4">
+Topics: Data Cleaning, Pipeline, ColumnTransformer, Feature Scaling, Classification, Model Evaluation
+</p>
+
+<h2 class="h6">Dataset</h2>
+
+<p>
+In this exercise you will work with the <strong>Heart Disease Dataset</strong>.
+</p>
+
+<p>
+Each row represents a patient and contains medical attributes used to predict whether the patient has heart disease.
+</p>
+
+<p>
+The target variable is <strong>AHD</strong> (Atherosclerotic Heart Disease).
+</p>
+
+<hr class="my-4">
+
+<h2 class="h6">Feature Description</h2>
+
+<table class="table table-sm">
+<thead>
+<tr>
+<th>Feature</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>Age</td><td>Age of the patient</td></tr>
+<tr><td>Sex</td><td>Gender of the patient</td></tr>
+<tr><td>ChestPain</td><td>Type of chest pain</td></tr>
+<tr><td>RestBP</td><td>Resting blood pressure</td></tr>
+<tr><td>Chol</td><td>Serum cholesterol level</td></tr>
+<tr><td>Fbs</td><td>Fasting blood sugar</td></tr>
+<tr><td>RestECG</td><td>Resting ECG results</td></tr>
+<tr><td>MaxHR</td><td>Maximum heart rate achieved</td></tr>
+<tr><td>ExAng</td><td>Exercise induced angina</td></tr>
+<tr><td>Oldpeak</td><td>ST depression induced by exercise</td></tr>
+<tr><td>Slope</td><td>Slope of peak exercise ST segment</td></tr>
+<tr><td>Ca</td><td>Number of major vessels colored by fluoroscopy</td></tr>
+<tr><td>Thal</td><td>Thalassemia type</td></tr>
+<tr><td>AHD</td><td>Heart disease diagnosis (Yes / No)</td></tr>
+</tbody>
+</table>
+
+<hr class="my-4">
+
+<h2 class="h6">Goal</h2>
+
+<p>
+The goal is to build a machine learning model that predicts whether a patient has heart disease.
+</p>
+
+<p>
+You will complete the following steps:
+</p>
+
+<ul>
+<li>Clean the dataset</li>
+<li>Define feature types</li>
+<li>Build a preprocessing pipeline</li>
+<li>Train a classification model</li>
+<li>Evaluate the model</li>
+<li>Visualize model performance</li>
+</ul>
+
+<hr class="my-4">
+
+<h2 class="h6">Step 1: Load the Dataset</h2>
+
+<pre class="bg-dark text-white p-3 rounded small"><code>
+import pandas as pd
+
+df = pd.read_csv("Heart.csv")
+
+print(df.head())
+</code></pre>
+
+<hr class="my-4">
+
+<h2 class="h6">Step 2: Remove Unnecessary Columns</h2>
+
+<p>
+Remove the column <code>Unnamed: 0</code> because it only represents row indices.
+</p>
+
+<pre class="bg-dark text-white p-3 rounded small"><code>
+df.drop(columns=["Unnamed: 0"], inplace=True)
+</code></pre>
+
+<hr class="my-4">
+
+<h2 class="h6">Step 3: Handle Missing Values</h2>
+
+<pre class="bg-dark text-white p-3 rounded small"><code>
+df.isnull().sum()
+</code></pre>
+
+<p>
+Fill missing values in the column <code>Ca</code> using the median.
+</p>
+
+<pre class="bg-dark text-white p-3 rounded small"><code>
+df["Ca"].fillna(df["Ca"].median(), inplace=True)
+</code></pre>
+
+<hr class="my-4">
+
+<h2 class="h6">Step 4: Define Features and Target</h2>
+
+<pre class="bg-dark text-white p-3 rounded small"><code>
+X = df.drop(columns=["AHD"])
+
+y = df["AHD"]
+</code></pre>
+
+<hr class="my-4">
+
+<h2 class="h6">Step 5: Identify Feature Types</h2>
+
+<pre class="bg-dark text-white p-3 rounded small"><code>
+numeric_features = [
+"Age",
+"RestBP",
+"Chol",
+"MaxHR",
+"Oldpeak",
+"Ca"
+]
+
+categorical_features = [
+"Sex",
+"ChestPain",
+"Fbs",
+"RestECG",
+"ExAng",
+"Slope",
+"Thal"
+]
+</code></pre>
+
+<hr class="my-4">
+
+<h2 class="h6">Step 6: Train Test Split</h2>
+
+<pre class="bg-dark text-white p-3 rounded small"><code>
+from sklearn.model_selection import train_test_split
+
+X_train, X_test, y_train, y_test = train_test_split(
+X,
+y,
+test_size=0.2,
+random_state=42,
+stratify=y
+)
+</code></pre>
+
+<hr class="my-4">
+
+<h2 class="h6">Step 7: Build Preprocessing Transformer</h2>
+
+<pre class="bg-dark text-white p-3 rounded small"><code>
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+
+preprocessor = ColumnTransformer(
+transformers=[
+("num", StandardScaler(), numeric_features),
+("cat", OneHotEncoder(drop="first"), categorical_features)
+]
+)
+</code></pre>
+
+<hr class="my-4">
+
+<h2 class="h6">Step 8: Create Machine Learning Pipeline</h2>
+
+<pre class="bg-dark text-white p-3 rounded small"><code>
+from sklearn.pipeline import Pipeline
+from sklearn.linear_model import LogisticRegression
+
+pipeline = Pipeline(steps=[
+
+("preprocessing", preprocessor),
+
+("classifier", LogisticRegression(max_iter=1000))
+
+])
+</code></pre>
+
+<hr class="my-4">
+
+<h2 class="h6">Step 9: Train the Model</h2>
+
+<pre class="bg-dark text-white p-3 rounded small"><code>
+pipeline.fit(X_train, y_train)
+
+y_pred = pipeline.predict(X_test)
+</code></pre>
+
+<hr class="my-4">
+
+<h2 class="h6">Step 10: Classification Report</h2>
+
+<pre class="bg-dark text-white p-3 rounded small"><code>
+from sklearn.metrics import classification_report
+
+print(classification_report(y_test, y_pred))
+</code></pre>
+
+<hr class="my-4">
+
+<h2 class="h6">Step 11: Confusion Matrix</h2>
+
+<pre class="bg-dark text-white p-3 rounded small"><code>
+from sklearn.metrics import confusion_matrix
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+cm = confusion_matrix(y_test, y_pred)
+
+sns.heatmap(cm, annot=True, fmt="d", cmap="Blues")
+
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+
+plt.title("Confusion Matrix")
+
+plt.show()
+</code></pre>
+
+<hr class="my-4">
+
+<h2 class="h6">Step 12: ROC Curve</h2>
+
+<pre class="bg-dark text-white p-3 rounded small"><code>
+from sklearn.metrics import roc_curve, roc_auc_score
+
+y_prob = pipeline.predict_proba(X_test)[:,1]
+
+fpr, tpr, thresholds = roc_curve(y_test, y_prob)
+
+auc = roc_auc_score(y_test, y_prob)
+
+plt.plot(fpr, tpr, label="AUC = %.2f" % auc)
+plt.plot([0,1], [0,1], linestyle="--")
+
+plt.xlabel("False Positive Rate")
+plt.ylabel("True Positive Rate")
+
+plt.title("ROC Curve")
+
+plt.legend()
+
+plt.show()
+</code></pre>
+
+<hr class="my-4">
+
+<h2 class="h6">Analysis Questions</h2>
+
+<ul>
+
+<li>What is the overall accuracy of the model?</li>
+
+<li>Which metric is most important in medical diagnosis: precision or recall?</li>
+
+<li>What does the ROC curve tell us about the model performance?</li>
+
+<li>How balanced are the false positives and false negatives?</li>
+
+</ul>
+
+<hr class="my-4">
+
+<h2 class="h6">Expected Output</h2>
+
+<ul>
+
+<li>Clean dataset</li>
+<li>Preprocessing pipeline</li>
+<li>Trained classification model</li>
+<li>Classification report</li>
+<li>Confusion matrix visualization</li>
+<li>ROC curve visualization</li>
+
+</ul>
+
+<p class="text-muted small mb-0">
+This exercise demonstrates a complete machine learning workflow using scikit-learn pipelines.
+</p>
+
+</div>
+</div>
+
+</div>
+</div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
