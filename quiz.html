@@ -1,0 +1,2259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ML Quiz Dashboard</title>
+
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <!-- Google Fonts: Dosis -->
+  <link href="https://fonts.googleapis.com/css2?family=Dosis:wght@400;700&display=swap" rel="stylesheet" />
+  <!-- js-circle-progress -->
+  <script src="https://cdn.jsdelivr.net/npm/js-circle-progress/dist/circle-progress.min.js" type="module"></script>
+
+  <style>
+/* ==============================
+   Modern Theme Tokens
+============================== */
+:root{
+  --bg-color:#f5f7fb;
+  --text-color:#1f2937;
+  --muted:#6b7280;
+
+  --container-bg:#ffffff;
+  --container-border:rgba(0,0,0,.06);
+
+  --option-bg:#f1f5f9;
+  --option-hover-bg:#e7eef7;
+  --selected-bg:#2563eb;
+
+  --btn-primary-bg:#22c55e;
+  --btn-secondary-bg:#2563eb;
+
+  --sidebar-bg:#0b1220;
+  --sidebar-text:#f8fafc;
+
+  --shadow: 0 12px 30px rgba(16,24,40,.10);
+  --shadow-soft: 0 8px 20px rgba(16,24,40,.08);
+
+  --correct-bg:#d1fae5;
+  --incorrect-bg:#fee2e2;
+  --neutral-bg:#f3f4f6;
+
+  --table-bg:#ffffff;
+  --table-head-bg:#eef2f7;
+  --table-border:rgba(0,0,0,0.08);
+  --table-stripe:rgba(0,0,0,0.03);
+
+  --card-bg:#ffffff;
+  --card-text:#111827;
+  --card-icon:#2563eb;
+  --card-border:rgba(0,0,0,0.06);
+
+  --accent1:#2563eb;
+  --accent2:#22c55e;
+
+  --radius:16px;
+  --radius-sm:12px;
+}
+
+/* Dark mode */
+body.dark-mode{
+  --bg-color:#0b0f17;
+  --text-color:#f3f4f6;
+  --muted:#9ca3af;
+
+  --container-bg: rgba(255,255,255,0.06);
+  --container-border: rgba(255,255,255,.10);
+
+  --option-bg: rgba(255,255,255,0.06);
+  --option-hover-bg: rgba(255,255,255,0.10);
+  --selected-bg:#3b82f6;
+
+  --btn-primary-bg:#22c55e;
+  --btn-secondary-bg:#60a5fa;
+
+  --sidebar-bg:#070a10;
+  --sidebar-text:#e5e7eb;
+
+  --shadow: 0 14px 40px rgba(0,0,0,.35);
+  --shadow-soft: 0 10px 26px rgba(0,0,0,.28);
+
+  --correct-bg:#065f46;
+  --incorrect-bg:#991b1b;
+  --neutral-bg:#111827;
+
+  --table-bg: rgba(255,255,255,0.05);
+  --table-head-bg: rgba(255,255,255,0.08);
+  --table-border: rgba(255,255,255,0.12);
+  --table-stripe: rgba(255,255,255,0.06);
+
+  --card-bg: rgba(255,255,255,0.07);
+  --card-text:#f3f4f6;
+  --card-icon:#60a5fa;
+  --card-border: rgba(255,255,255,0.12);
+
+  --accent1:#60a5fa;
+  --accent2:#34d399;
+}
+
+/* ==============================
+   Base
+============================== */
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
+
+body{
+  font-family:'Dosis',sans-serif;
+  background: radial-gradient(1200px 600px at 20% 0%, rgba(37,99,235,.14), transparent 55%),
+              radial-gradient(900px 500px at 90% 20%, rgba(34,197,94,.12), transparent 55%),
+              var(--bg-color);
+  color:var(--text-color);
+  transition: background-color .25s ease, color .25s ease;
+  padding-bottom:2rem;
+}
+
+a,button{ transition: all .18s ease; }
+::selection{ background: rgba(37,99,235,.25); }
+
+/* ==============================
+   Chrome Banner
+============================== */
+.recommend-banner{
+  position: sticky;
+  top: 0;
+  z-index: 1055;
+  padding: .65rem .75rem;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  background: linear-gradient(90deg, rgba(37,99,235,.18), rgba(34,197,94,.14));
+  border-bottom: 1px solid var(--container-border);
+}
+.recommend-banner .inner{
+  max-width: 1200px;
+  margin: 0 auto;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:.75rem;
+}
+.recommend-banner .msg{
+  display:flex; align-items:center; gap:.6rem;
+  font-size:.95rem;
+}
+.recommend-banner .msg i{ color: var(--accent1); }
+.recommend-banner .actions{
+  display:flex; align-items:center; gap:.5rem;
+}
+.recommend-banner .btn{
+  border-radius: 999px;
+  padding: .35rem .7rem;
+}
+body.dark-mode .recommend-banner .btn-close{ filter: invert(1); }
+
+/* ==============================
+   Sidebar / Layout
+============================== */
+.sidebar{
+  background: linear-gradient(180deg, rgba(255,255,255,0.06), transparent 60%),
+              var(--sidebar-bg);
+  color:var(--sidebar-text);
+  padding:1rem;
+  height:100vh;
+  position:sticky;
+  top:0;
+  border-right:1px solid rgba(255,255,255,0.08);
+}
+.sidebar h3{ letter-spacing:.4px; }
+.sidebar .nav-link{
+  color:var(--sidebar-text);
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  display:flex; align-items:center; gap:.5rem;
+}
+.sidebar .nav-link:hover{
+  background: rgba(255,255,255,.10);
+  transform: translateX(2px);
+}
+.sidebar .nav-link.active{
+  background: linear-gradient(90deg, rgba(96,165,250,.25), rgba(52,211,153,.12));
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+/* Mobile navbar */
+.navbar{
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* ==============================
+   Panels / Cards
+============================== */
+.container-custom{
+  background: var(--container-bg);
+  border-radius: var(--radius);
+  padding: 22px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--container-border);
+}
+body.dark-mode .container-custom{ box-shadow: var(--shadow-soft); }
+
+.hero-title{
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  letter-spacing: .3px;
+}
+.hero-sub{
+  color: var(--muted);
+  max-width: 900px;
+  margin-inline:auto;
+}
+
+/* Stats cards */
+.stats-card{
+  border-radius: var(--radius);
+  background: var(--card-bg) !important;
+  color: var(--card-text) !important;
+  border: 1px solid var(--card-border) !important;
+  box-shadow: var(--shadow-soft);
+  overflow:hidden;
+  position:relative;
+}
+.stats-card:before{
+  content:"";
+  position:absolute; inset:0;
+  background: radial-gradient(600px 200px at 10% 0%, rgba(37,99,235,.18), transparent 55%),
+              radial-gradient(600px 200px at 90% 0%, rgba(34,197,94,.12), transparent 55%);
+  pointer-events:none;
+}
+.stats-card .card-body{ position:relative; }
+.stats-card:hover{ transform: translateY(-6px); }
+.stats-card i{
+  font-size: 2rem;
+  color: var(--card-icon) !important;
+}
+.stats-card .card-title{ color: var(--muted) !important; font-weight: 700; }
+.stats-card .card-text{ color: var(--card-text) !important; }
+
+/* Circle progress readability */
+circle-progress{
+  display:block;
+  margin:0 auto;
+  width: 92px;
+  height: 92px;
+  color: var(--text-color);
+}
+circle-progress::part(text){
+  fill: var(--text-color);
+  font-weight: 800;
+}
+
+/* Quiz card */
+.quiz-card{
+  background: var(--container-bg);
+  border-radius: var(--radius);
+  border: 1px solid var(--container-border);
+  box-shadow: var(--shadow-soft);
+  cursor:pointer;
+  height:100%;
+  position:relative;
+  overflow:hidden;
+}
+.quiz-card:before{
+  content:"";
+  position:absolute; inset:-2px;
+  background: radial-gradient(500px 200px at 10% 0%, rgba(37,99,235,.20), transparent 55%),
+              radial-gradient(500px 200px at 90% 0%, rgba(34,197,94,.14), transparent 55%);
+  opacity:.65;
+  pointer-events:none;
+}
+.quiz-card-body{ padding: 18px 18px; position:relative; }
+.quiz-card:hover{
+  transform: translateY(-8px);
+  box-shadow: 0 18px 45px rgba(0,0,0,.18);
+}
+.quiz-title{ font-size: 1.15rem; font-weight: 800; }
+.quiz-domain{ color: var(--btn-secondary-bg); margin-bottom:8px; }
+.quiz-description{ color: var(--muted); font-size:.95rem; }
+.quiz-details{
+  font-size:.88rem;
+  color: var(--text-color);
+  display:flex;
+  gap:.5rem;
+  justify-content:space-between;
+  flex-wrap:wrap;
+}
+
+/* Questions */
+.question-box{
+  background: var(--container-bg);
+  border-radius: var(--radius);
+  padding: 18px 18px;
+  border: 1px solid var(--container-border);
+  box-shadow: var(--shadow-soft);
+}
+.question-header{
+  font-size: 1.25rem;
+  font-weight: 800;
+  border-bottom: 1px dashed var(--container-border);
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+}
+.option{
+  padding: 12px 14px;
+  margin: 10px 0;
+  background: var(--option-bg);
+  border-radius: var(--radius-sm);
+  cursor:pointer;
+  border: 1px solid transparent;
+}
+.option:hover{
+  background: var(--option-hover-bg);
+  transform: translateY(-2px);
+  border-color: var(--container-border);
+}
+.option.selected{
+  background: linear-gradient(90deg, rgba(37,99,235,.92), rgba(59,130,246,.85));
+  color:#fff;
+  border-color: rgba(255,255,255,.22);
+}
+
+/* Buttons */
+.btn{ border-radius: 14px; }
+.btn-primary{
+  background-color: var(--btn-primary-bg);
+  border-color: var(--btn-primary-bg);
+}
+.btn-secondary{
+  background-color: var(--btn-secondary-bg);
+  border-color: var(--btn-secondary-bg);
+}
+.btn-warning{ border-radius: 14px; }
+.btn:hover{ opacity:.95; transform: translateY(-1px); }
+.btn:active{ transform: translateY(0); }
+
+#timer{
+  font-weight: 800;
+  padding: .35rem .6rem;
+  border-radius: 999px;
+  background: rgba(220,53,69,.12);
+  border: 1px solid rgba(220,53,69,.25);
+}
+
+/* Tables dark/light */
+.attempts-history .table,
+#attempts-history-tab .table{
+  color: var(--text-color) !important;
+  background: var(--table-bg) !important;
+  border: 1px solid var(--table-border);
+  border-radius: var(--radius);
+  overflow:hidden;
+}
+
+/*  Mobile: allow attempts table to scroll instead of being cut off */
+.attempts-history{
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.attempts-history table{
+  min-width: 720px;            /* force scroll on phones */
+}
+
+.attempts-history .btn{
+  white-space: nowrap;         /* keep "Review" button readable */
+}
+
+.attempts-history .table thead th,
+#attempts-history-tab .table thead th{
+  background: var(--table-head-bg) !important;
+  color: var(--text-color) !important;
+  border-bottom: 1px solid var(--table-border) !important;
+}
+.attempts-history .table td,
+.attempts-history .table th,
+#attempts-history-tab .table td,
+#attempts-history-tab .table th{
+  background: transparent !important;
+  color: var(--text-color) !important;
+  border-color: var(--table-border) !important;
+}
+.attempts-history .table-striped > tbody > tr:nth-of-type(odd) > *,
+#attempts-history-tab .table-striped > tbody > tr:nth-of-type(odd) > *{
+  background: var(--table-stripe) !important;
+}
+
+/* Review */
+.review-option{
+  padding: 10px 12px;
+  margin: 6px 0;
+  border-radius: 12px;
+}
+.review-option.correct{ background: var(--correct-bg); }
+.review-option.incorrect{ background: var(--incorrect-bg); }
+.review-option.neutral{ background: var(--neutral-bg); }
+
+/* Offcanvas */
+.offcanvas{
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+}
+
+/*  Offcanvas close button visibility on dark */
+.offcanvas .btn-close{
+  filter: invert(1) grayscale(1);
+  opacity: .9;
+}
+.offcanvas .btn-close:focus{
+  box-shadow: 0 0 0 .2rem rgba(96,165,250,.25);
+}
+
+/*  Sticky offcanvas header so close stays visible when scrolling */
+.offcanvas-header{
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--sidebar-bg);
+  border-bottom: 1px solid rgba(255,255,255,0.10);
+}
+
+/* Better spacing on small screens */
+@media (max-width: 575.98px){
+  .container-custom{ padding: 16px; border-radius: 14px; }
+  .stats-card{ border-radius: 14px; }
+  #timer{ font-size:.92rem; }
+}
+
+/* Submission status pill */
+.status-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:.5rem;
+  padding:.35rem .65rem;
+  border-radius:999px;
+  border:1px solid var(--container-border);
+  background: rgba(0,0,0,.03);
+}
+body.dark-mode .status-pill{
+  background: rgba(255,255,255,.06);
+}
+.status-dot{
+  width:10px; height:10px; border-radius:50%;
+  background:#9ca3af;
+}
+  </style>
+</head>
+
+<body>
+
+  <!--  Browser recommendation banner (dismissible) -->
+  <div class="recommend-banner d-none" id="chromeBanner">
+    <div class="inner">
+      <div class="msg">
+        <i class="fa-brands fa-chrome"></i>
+        <span>For the best experience, we recommend using <strong>Google Chrome</strong>.</span>
+      </div>
+      <div class="actions">
+        <button class="btn btn-sm btn-secondary" type="button" onclick="tryOpenChromeHelp()">
+          <i class="fas fa-circle-info me-1"></i> Why?
+        </button>
+        <button class="btn btn-sm btn-outline-light" type="button" onclick="dismissChromeBanner()">
+          Dismiss
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- User Login Modal -->
+  <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+          <div class="modal-content" style="border-radius: var(--radius); border:1px solid var(--container-border);">
+              <div class="modal-header">
+                  <h5 class="modal-title">User Login</h5>
+              </div>
+              <div class="modal-body">
+                  <label for="username">Name:</label>
+                  <input type="text" id="username" class="form-control" placeholder="Enter your full name as registered for the training" required>
+                  <label for="password" class="mt-2">Password:</label>
+                  <input type="password" id="password" class="form-control" placeholder="Enter your password" required>
+              </div>
+              <div class="modal-footer">
+                  <button type="button" class="btn btn-primary" onclick="saveUserCredentials()">Login</button>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <!-- Mobile Navbar -->
+  <nav class="navbar navbar-dark bg-dark d-md-none">
+    <div class="container-fluid">
+      <!--  Toggle button changes bars ⇄ X -->
+      <button id="menuToggleBtn"
+        class="btn btn-outline-light"
+        type="button"
+        data-bs-toggle="offcanvas"
+        data-bs-target="#offcanvasSidebar"
+        aria-controls="offcanvasSidebar"
+        aria-label="Open menu">
+        <i class="fas fa-bars"></i>
+      </button>
+
+      <span class="navbar-brand mb-0 h1">MLAI Dashboard</span>
+    </div>
+  </nav>
+
+  <div class="container-fluid">
+    <div class="row">
+      <!-- Sidebar -->
+      <nav class="col-md-3 col-lg-2 d-none d-md-block sidebar p-3" id="sidebarDesktop">
+        <div class="position-sticky" style="top:0;">
+          <div>
+            <h3 class="mb-3">Dashboard</h3>
+            <ul class="nav flex-column" id="sidebarMenu">
+              <li class="nav-item">
+                <a class="nav-link active" href="#" id="menu-home" onclick="switchTab('home')">
+                  <i class="fas fa-home"></i> Home
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#" id="menu-quiz" onclick="switchTab('quiz')">
+                  <i class="fas fa-question-circle"></i> Quiz
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#" id="menu-attempts" onclick="switchTab('attempts')">
+                  <i class="fas fa-history"></i> Attempts
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#" id="menu-settings" onclick="switchTab('settings')">
+                  <i class="fas fa-cog"></i> Settings
+                </a>
+              </li>
+            </ul>
+            <div class="mt-4">
+              <button class="btn btn-secondary w-100" id="dark-mode-toggle" onclick="toggleDarkMode()">
+                <i class="fas fa-moon me-2"></i> Toggle Dark Mode
+              </button>
+              <div class="container text-center">
+                <p id="userDisplay" class="fw-bold" style="color: var(--accent1); margin-top:10px;"></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <!-- Offcanvas Sidebar for Mobile -->
+      <div class="offcanvas offcanvas-start d-md-none" tabindex="-1" id="offcanvasSidebar" aria-labelledby="offcanvasSidebarLabel">
+        <div class="offcanvas-header">
+          <h5 class="offcanvas-title" id="offcanvasSidebarLabel">Dashboard</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+          <ul class="nav flex-column" id="sidebarMenuMobile">
+            <li class="nav-item">
+              <a class="nav-link active" href="#" id="menu-home-mobile" onclick="switchTab('home'); closeOffcanvas();">
+                <i class="fas fa-home me-2"></i> Home
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#" id="menu-quiz-mobile" onclick="switchTab('quiz'); closeOffcanvas();">
+                <i class="fas fa-question-circle me-2"></i> Quiz
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#" id="menu-attempts-mobile" onclick="switchTab('attempts'); closeOffcanvas();">
+                <i class="fas fa-history me-2"></i> Attempts
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#" id="menu-settings-mobile" onclick="switchTab('settings'); closeOffcanvas();">
+                <i class="fas fa-cog me-2"></i> Settings
+              </a>
+            </li>
+          </ul>
+          <div class="mt-4">
+            <button class="btn btn-secondary w-100" onclick="toggleDarkMode()">
+              <i class="fas fa-moon me-2"></i> Toggle Dark Mode
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content Area -->
+      <main class="col-md-9 col-lg-10 main-content p-3">
+
+        <!-- Home Tab -->
+        <div id="tab-home" class="tab-content">
+          <div class="container-custom text-center">
+            <h1 class="hero-title">Welcome!</h1>
+            <p class="hero-sub">
+              Your interactive quiz dashboard. Track progress, review attempts, and improve ML-AI skils.
+            </p>
+
+            <!-- Stats Cards Row -->
+            <div class="row text-center mb-3" id="stats-cards">
+              <div class="col-sm-6 col-lg-3 mb-3">
+                <div class="card border-0 stats-card">
+                  <div class="card-body">
+                    <i class="fas fa-book"></i>
+                    <h5 class="card-title mt-2">Total Quizzes</h5>
+                    <p id="stat-total-quizzes" class="card-text fs-4 fw-bold">0</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-sm-6 col-lg-3 mb-3">
+                <div class="card border-0 stats-card">
+                  <div class="card-body">
+                    <i class="fas fa-question-circle"></i>
+                    <h5 class="card-title mt-2">Total Questions</h5>
+                    <p id="stat-total-questions" class="card-text fs-4 fw-bold">0</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-sm-6 col-lg-3 mb-3">
+                <div class="card border-0 stats-card">
+                  <div class="card-body">
+                    <i class="fas fa-history"></i>
+                    <h5 class="card-title mt-2">Total Attempts</h5>
+                    <p id="stat-total-attempts" class="card-text fs-4 fw-bold">0</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-sm-6 col-lg-3 mb-3">
+                <div class="card border-0 stats-card">
+                  <div class="card-body">
+                    <i class="fas fa-star"></i>
+                    <h5 class="card-title mt-2">Best Score</h5>
+                    <p id="stat-best-score" class="card-text fs-4 fw-bold">0%</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Domain-level stats -->
+            <div id="stats"></div>
+          </div>
+        </div>
+
+        <!-- Quiz Tab -->
+        <div id="tab-quiz" class="tab-content d-none">
+          <div id="quiz-list" class="container-custom">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+              <h2 class="mb-0">Select a Quiz</h2>
+              <button class="btn btn-outline-danger btn-sm" id="discard-paused-btn" type="button" onclick="discardPausedAttempt()">
+                <i class="fas fa-trash me-1"></i> Discard Paused Attempt
+              </button>
+            </div>
+
+            <div class="mt-2" id="paused-attempt-banner"></div>
+            <div id="quiz-buttons" class="row g-4 mt-1"></div>
+          </div>
+
+          <div id="quiz-start" class="container-custom d-none">
+            <h2 id="quiz-title">Quiz Instructions</h2>
+            <div id="quiz-info"></div>
+            <p class="text-muted">Click start when you’re ready.</p>
+            <button class="btn btn-primary" onclick="startQuiz()">
+              Start Quiz <i class="fas fa-play ms-2"></i>
+            </button>
+          </div>
+
+          <div id="quiz-container" class="container-custom d-none">
+            <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+              <div>
+                <h4 id="quiz-name-header" class="mb-1"></h4>
+                <div id="progress" class="text-muted">
+                  Question <span id="current">1</span> of <span id="total">0</span>
+                </div>
+              </div>
+              <div id="timer"></div>
+            </div>
+
+            <div class="question-box" id="question-box">
+              <div class="question-header" id="question-text"></div>
+              <div class="options" id="options"></div>
+            </div>
+
+            <div class="d-flex justify-content-center gap-3 flex-wrap">
+              <button class="btn btn-warning" id="pause-btn" type="button" onclick="pauseQuiz()">
+                <i class="fas fa-pause me-2"></i> Pause
+              </button>
+
+              <button class="btn btn-secondary" id="prev-btn" onclick="prevQuestion()">
+                <i class="fas fa-arrow-left me-2"></i> Previous
+              </button>
+
+              <button class="btn btn-primary" id="next-btn" onclick="nextQuestion()" disabled>
+                Next <i class="fas fa-arrow-right ms-2"></i>
+              </button>
+            </div>
+
+            <div class="mt-2 text-center" id="question-nav"></div>
+
+            <button class="btn btn-primary d-none mt-2" id="submit-btn" onclick="submitQuiz()">
+              Submit Quiz <i class="fas fa-check ms-2"></i>
+            </button>
+          </div>
+
+          <div id="result-box" class="container-custom d-none mt-3">
+            <h2>Quiz Completed!</h2>
+            <p class="text-muted">
+              Your Score: <span id="score"></span> / <span id="total-questions"></span>
+              (<span id="percentage"></span>%)
+            </p>
+            <button class="btn btn-secondary" onclick="reviewAnswersCurrent()">
+              Review Answers <i class="fas fa-list ms-2"></i>
+            </button>
+
+            <!--  Submission status on results too -->
+            <div class="mt-3 d-flex justify-content-center">
+              <div class="status-pill">
+                <span class="status-dot" id="submitDot"></span>
+                <span id="submitStatusText">Submission status: --</span>
+              </div>
+            </div>
+
+            <div class="attempts-history mt-3" id="attempts-history"></div>
+          </div>
+
+          <div id="review-box" class="container-custom d-none mt-3">
+            <h2>Review This Attempt</h2>
+            <div id="review-content"></div>
+          </div>
+        </div>
+
+        <!-- Attempts Tab -->
+        <div id="tab-attempts" class="tab-content d-none">
+          <div class="container-custom" id="attempts-container">
+            <h2>Your Previous Attempts</h2>
+            <div class="attempts-history" id="attempts-history-tab"></div>
+          </div>
+          <div id="review-saved-box" class="container-custom d-none mt-3">
+            <h2>Review Past Attempt</h2>
+            <div id="review-saved-content"></div>
+          </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div id="tab-settings" class="tab-content d-none">
+          <div class="container-custom" id="settings-container">
+            <h2>Settings</h2>
+            <p class="text-muted">Adjust your preferences below:</p>
+
+            <button class="btn btn-secondary mb-3" onclick="toggleDarkMode()">
+              <i class="fas fa-adjust me-2"></i> Toggle Dark Mode
+            </button>
+            <br />
+
+            <!--  Share toggle -->
+            <div class="mt-2 mb-3 text-start">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" id="shareProgressToggle">
+                <label class="form-check-label" for="shareProgressToggle">
+                  Share my progress with instructor (recommended)
+                </label>
+              </div>
+              <small class="text-muted">
+                If disabled, your progress stays on this device only. You can still export manually.
+              </small>
+            </div>
+
+            <!--  Submission status + actions -->
+            <div class="mb-3 text-start">
+              <div class="d-flex align-items-center gap-2 flex-wrap">
+                <div class="status-pill">
+                  <span class="status-dot" id="submitDot2"></span>
+                  <span id="submitStatusText2">Submission status: --</span>
+                </div>
+
+                <button class="btn btn-sm btn-outline-primary" type="button" onclick="forceSendNow()">
+                  <i class="fas fa-paper-plane me-1"></i> Try send now
+                </button>
+
+                <button class="btn btn-sm btn-outline-light" type="button" onclick="copyProgressJSON()">
+                  <i class="fas fa-copy me-1"></i> Copy my progress JSON
+                </button>
+              </div>
+
+              <small class="text-muted d-block mt-2">
+                If your network blocks submission (Firewall/DLP), use “Copy my progress JSON” or Export Progress and send it to the instructor manually.
+              </small>
+            </div>
+
+            <button class="btn btn-danger mb-3" onclick="clearSavedData()">
+              <i class="fas fa-trash-alt me-2"></i> Clear Saved Data
+            </button>
+
+            <hr>
+            <h4>Backup / Restore Progress</h4>
+            <p class="mb-2 text-muted">Export your quiz attempts and progress to move them to another browser.</p>
+            <button class="btn btn-primary mb-2" onclick="exportProgress()">
+              <i class="fas fa-file-export me-2"></i> Export Progress
+            </button>
+            <br>
+            <button class="btn btn-secondary mb-2" onclick="document.getElementById('import-file').click()">
+              <i class="fas fa-file-import me-2"></i> Import Progress
+            </button>
+            <input type="file" id="import-file" accept="application/json" class="d-none" onchange="importProgress(event)">
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Bootstrap 5 JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+/**************************
+ * STATIC APP VARIABLES
+ **************************/
+const DEFAULT_MINUTES_PER_QUESTION = 1.2;
+const QUIZ_ALLOW_NAVIGATION = false; // default OFF
+const QUIZ_ALLOW_PAUSE = true;      // default OFF
+
+/**************************
+ * Chrome banner logic
+ **************************/
+const CHROME_BANNER_KEY = "hideChromeBanner";
+function isChromeBrowser(){
+  const ua = navigator.userAgent;
+  const isChromium = !!window.chrome;
+  const isEdge = ua.includes("Edg/");
+  const isOpera = ua.includes("OPR/");
+  return isChromium && !isEdge && !isOpera;
+}
+function showChromeBannerIfNeeded(){
+  const dismissed = localStorage.getItem(CHROME_BANNER_KEY) === "1";
+  const banner = document.getElementById("chromeBanner");
+  if (!banner) return;
+  if (!dismissed && !isChromeBrowser()) banner.classList.remove("d-none");
+  else banner.classList.add("d-none");
+}
+function dismissChromeBanner(){
+  localStorage.setItem(CHROME_BANNER_KEY, "1");
+  document.getElementById("chromeBanner")?.classList.add("d-none");
+}
+function tryOpenChromeHelp(){
+  alert("Chrome provides the most consistent performance for this quiz (timers, storage, and UI rendering).");
+}
+
+/**************************
+ * Mobile offcanvas UX fix: bars ⇄ X
+ **************************/
+function setupMobileMenuToggle(){
+  const offcanvasEl = document.getElementById("offcanvasSidebar");
+  const toggleBtn = document.getElementById("menuToggleBtn");
+  if (!offcanvasEl || !toggleBtn) return;
+
+  offcanvasEl.addEventListener("shown.bs.offcanvas", () => {
+    toggleBtn.innerHTML = '<i class="fas fa-xmark"></i>';
+    toggleBtn.setAttribute("aria-label", "Close menu");
+  });
+
+  offcanvasEl.addEventListener("hidden.bs.offcanvas", () => {
+    toggleBtn.innerHTML = '<i class="fas fa-bars"></i>';
+    toggleBtn.setAttribute("aria-label", "Open menu");
+  });
+
+  // If menu is open and user taps the button again, close it
+  toggleBtn.addEventListener("click", () => {
+    const inst = bootstrap.Offcanvas.getInstance(offcanvasEl);
+    if (inst && offcanvasEl.classList.contains("show")) inst.hide();
+  });
+}
+
+function applyPauseUI() {
+  const showPause = !!QUIZ_ALLOW_PAUSE;
+  document.getElementById("pause-btn")?.classList.toggle("d-none", !showPause);
+  document.getElementById("discard-paused-btn")?.classList.toggle("d-none", !showPause);
+  const banner = document.getElementById("paused-attempt-banner");
+  if (banner && !showPause) banner.innerHTML = "";
+}
+
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    let j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+function getEffectiveQuestionCount(quiz) {
+  const total = Array.isArray(quiz?.questions) ? quiz.questions.length : 0;
+  const requested = Number.isFinite(quiz?.numQuestions) ? quiz.numQuestions : null;
+  return requested ? Math.min(requested, total) : total;
+}
+
+function getEffectiveTimeLimitMinutes(quiz) {
+  const explicit = Number.isFinite(quiz?.timeLimit) ? quiz.timeLimit : null;
+  if (explicit && explicit > 0) return explicit;
+  const qCount = getEffectiveQuestionCount(quiz);
+  return qCount * DEFAULT_MINUTES_PER_QUESTION;
+}
+
+function formatMinutes(mins) {
+  const rounded = Math.round(mins * 10) / 10;
+  return (rounded % 1 === 0) ? String(rounded.toFixed(0)) : String(rounded.toFixed(1));
+}
+
+/* ==============================
+   Quizzes
+============================== */
+  const quizzes = [
+
+   {
+  "domain": "Machine Learning Tools",
+  "name": "Final-Quiz",
+  "bio": "A readiness assessment designed to evaluate whether participants possess the basic Python, data handling, and analytical knowledge required for the Machine Learning Tools (Intermediate) course.",
+  "mode": "Practice",
+  "questions": [
+    {
+      "question": "Which Python library is commonly used for working with tabular datasets in machine learning workflows?",
+      "options": [
+        "Pandas",
+        "Flask",
+        "Pygame",
+        "Tkinter"
+      ],
+      "correct_option": "Pandas",
+      "explanation": "Pandas provides DataFrame structures used for loading, cleaning, and transforming tabular datasets."
+    },
+    {
+      "question": "What is the primary role of NumPy in Python data science workflows?",
+      "options": [
+        "Performing numerical computations and array operations",
+        "Creating interactive web applications",
+        "Managing relational database transactions",
+        "Rendering graphical user interfaces"
+      ],
+      "correct_option": "Performing numerical computations and array operations",
+      "explanation": "NumPy provides efficient numerical operations and multi-dimensional arrays used in machine learning computations."
+    },
+    {
+      "question": "What is the purpose of Jupyter Notebook in machine learning workflows?",
+      "options": [
+        "Providing an interactive environment combining code, results, and documentation",
+        "Deploying production web servers",
+        "Managing system processes and memory",
+        "Compiling Python programs into binaries"
+      ],
+      "correct_option": "Providing an interactive environment combining code, results, and documentation",
+      "explanation": "Jupyter Notebook enables interactive experimentation with data, code, and visualizations."
+    },
+    {
+      "question": "What is the objective of data cleaning during data preparation?",
+      "options": [
+        "Correcting missing, inconsistent, or noisy data",
+        "Compressing datasets into smaller storage formats",
+        "Automatically generating machine learning models",
+        "Encrypting sensitive database records"
+      ],
+      "correct_option": "Correcting missing, inconsistent, or noisy data",
+      "explanation": "Clean data improves reliability and accuracy of machine learning models."
+    },
+    {
+      "question": "What does feature engineering involve in machine learning projects?",
+      "options": [
+        "Transforming or selecting variables to improve model performance",
+        "Designing computer processors optimized for analytics",
+        "Creating user interfaces for machine learning dashboards",
+        "Implementing distributed file storage systems"
+      ],
+      "correct_option": "Transforming or selecting variables to improve model performance",
+      "explanation": "Feature engineering creates useful representations of data for learning algorithms."
+    },
+    {
+      "question": "Which activity is part of exploratory data analysis (EDA)?",
+      "options": [
+        "Analyzing data distributions and identifying patterns",
+        "Deploying machine learning models to production servers",
+        "Compiling Python code into executable programs",
+        "Managing application authentication systems"
+      ],
+      "correct_option": "Analyzing data distributions and identifying patterns",
+      "explanation": "EDA helps understand relationships, trends, and anomalies in datasets."
+    },
+    {
+      "question": "What characterizes supervised learning?",
+      "options": [
+        "Training models using labeled input-output data",
+        "Training models without any data",
+        "Learning patterns only from image datasets",
+        "Optimizing database queries automatically"
+      ],
+      "correct_option": "Training models using labeled input-output data",
+      "explanation": "Supervised learning uses datasets where the correct outputs are known."
+    },
+    {
+      "question": "Which example represents a classification problem?",
+      "options": [
+        "Predicting whether a product is defective or non-defective",
+        "Predicting the exact temperature for tomorrow",
+        "Estimating the future revenue of a company",
+        "Calculating the average value of sensor readings"
+      ],
+      "correct_option": "Predicting whether a product is defective or non-defective",
+      "explanation": "Classification predicts discrete categories such as classes or labels."
+    },
+    {
+      "question": "Which example represents a regression problem?",
+      "options": [
+        "Predicting the future sales value of a product",
+        "Determining whether an email is spam",
+        "Detecting whether an image contains a defect",
+        "Classifying customer sentiment as positive or negative"
+      ],
+      "correct_option": "Predicting the future sales value of a product",
+      "explanation": "Regression predicts continuous numerical values."
+    },
+    {
+      "question": "Why is splitting data into training and testing sets important?",
+      "options": [
+        "To evaluate how well a model generalizes to unseen data",
+        "To increase the dataset size artificially",
+        "To reduce the number of variables in the dataset",
+        "To eliminate the need for model validation"
+      ],
+      "correct_option": "To evaluate how well a model generalizes to unseen data",
+      "explanation": "Testing data measures model performance on data not used during training."
+    },
+    {
+      "question": "What problem occurs when a model learns the training data too closely and performs poorly on new data?",
+      "options": [
+        "Overfitting",
+        "Compilation error",
+        "Memory fragmentation",
+        "Network latency"
+      ],
+      "correct_option": "Overfitting",
+      "explanation": "Overfitting occurs when the model memorizes training data instead of learning general patterns."
+    },
+    {
+      "question": "Which metric measures how many predicted positive cases are actually correct?",
+      "options": [
+        "Precision",
+        "Accuracy",
+        "Recall",
+        "Variance"
+      ],
+      "correct_option": "Precision",
+      "explanation": "Precision measures the proportion of correct positive predictions."
+    },
+    {
+      "question": "Which machine learning technique groups similar observations without labeled outputs?",
+      "options": [
+        "Clustering",
+        "Classification",
+        "Regression",
+        "Supervised learning"
+      ],
+      "correct_option": "Clustering",
+      "explanation": "Clustering groups similar data points when labels are not available."
+    },
+    {
+      "question": "Which algorithm is commonly used for clustering datasets?",
+      "options": [
+        "K-Means",
+        "Linear Regression",
+        "Logistic Regression",
+        "Decision Tree"
+      ],
+      "correct_option": "K-Means",
+      "explanation": "K-Means partitions data into clusters based on similarity."
+    },
+    {
+      "question": "What is anomaly detection used for in machine learning?",
+      "options": [
+        "Identifying unusual patterns or outliers in data",
+        "Increasing dataset size automatically",
+        "Replacing missing values in datasets",
+        "Optimizing database query performance"
+      ],
+      "correct_option": "Identifying unusual patterns or outliers in data",
+      "explanation": "Anomaly detection identifies rare or abnormal observations."
+    },
+    {
+      "question": "What is model deployment in machine learning?",
+      "options": [
+        "Making a trained model available for real-world use",
+        "Training models using distributed GPUs",
+        "Collecting data from sensors",
+        "Cleaning raw datasets"
+      ],
+      "correct_option": "Making a trained model available for real-world use",
+      "explanation": "Deployment integrates trained models into applications or services."
+    },
+    {
+      "question": "Which tool can be used to create a simple API for serving machine learning models?",
+      "options": [
+        "Flask",
+        "Matplotlib",
+        "NumPy",
+        "Seaborn"
+      ],
+      "correct_option": "Flask",
+      "explanation": "Flask can expose trained models through REST APIs."
+    },
+    {
+      "question": "What does model monitoring involve after deployment?",
+      "options": [
+        "Tracking model performance and detecting data drift",
+        "Writing Python scripts for preprocessing",
+        "Installing Python libraries",
+        "Compiling machine learning frameworks"
+      ],
+      "correct_option": "Tracking model performance and detecting data drift",
+      "explanation": "Monitoring ensures models remain accurate as data changes."
+    }
+  ]
+}
+
+/* , {
+  "domain": "ML & AI Final Assessment",
+  "name": "Post-Test Quiz",
+  "bio": "A final assessment test to evaluate participants understanding after completing the Machine Learning and Artificial Intelligence course.",
+  "mode": "Practice",
+  "questions": [
+    {
+      "question": "Which step usually comes first in a machine learning pipeline?",
+      "options": [
+        "Collecting and preparing the dataset",
+        "Training the machine learning model",
+        "Evaluating model performance",
+        "Deploying the trained model"
+      ],
+      "correct_option": "Collecting and preparing the dataset",
+      "explanation": "Machine learning projects start with acquiring and preparing the data before training models."
+    },
+    {
+      "question": "Why is exploratory data analysis (EDA) important before training a model?",
+      "options": [
+        "To understand patterns, distributions, and potential issues in the dataset",
+        "To automatically generate machine learning algorithms",
+        "To reduce the size of the training dataset",
+        "To replace the need for model evaluation"
+      ],
+      "correct_option": "To understand patterns, distributions, and potential issues in the dataset",
+      "explanation": "EDA helps identify data distribution, outliers, and relationships before model training."
+    },
+    {
+      "question": "Which Pandas structure is most commonly used for tabular datasets?",
+      "options": [
+        "DataFrame",
+        "SeriesGroup",
+        "MatrixArray",
+        "TensorBlock"
+      ],
+      "correct_option": "DataFrame",
+      "explanation": "Pandas DataFrame is the primary structure used for handling tabular data."
+    },
+    {
+      "question": "What is the purpose of feature scaling in machine learning?",
+      "options": [
+        "To normalize or standardize feature values for better model performance",
+        "To increase the number of features automatically",
+        "To convert numerical features into text labels",
+        "To remove all outliers from the dataset"
+      ],
+      "correct_option": "To normalize or standardize feature values for better model performance",
+      "explanation": "Feature scaling ensures that variables with large ranges do not dominate learning."
+    },
+    {
+      "question": "Which algorithm is commonly used for classification tasks?",
+      "options": [
+        "Logistic Regression",
+        "Principal Component Analysis",
+        "K-Means Clustering",
+        "Apriori Algorithm"
+      ],
+      "correct_option": "Logistic Regression",
+      "explanation": "Logistic Regression is a supervised learning algorithm used for classification problems."
+    },
+    {
+      "question": "Which algorithm is commonly used for clustering unlabeled data?",
+      "options": [
+        "K-Means",
+        "Linear Regression",
+        "Decision Tree",
+        "Naïve Bayes"
+      ],
+      "correct_option": "K-Means",
+      "explanation": "K-Means groups data points into clusters based on similarity."
+    },
+    {
+      "question": "What does the loss function measure during model training?",
+      "options": [
+        "The difference between predicted values and actual values",
+        "The number of features used by the model",
+        "The size of the dataset",
+        "The training time of the algorithm"
+      ],
+      "correct_option": "The difference between predicted values and actual values",
+      "explanation": "The loss function quantifies how well the model predictions match the true values."
+    },
+    {
+      "question": "What problem occurs when a model performs well on training data but poorly on new data?",
+      "options": [
+        "Overfitting",
+        "Underfitting",
+        "Normalization",
+        "Regularization"
+      ],
+      "correct_option": "Overfitting",
+      "explanation": "Overfitting occurs when the model memorizes training data instead of generalizing."
+    },
+    {
+      "question": "What does the bias–variance tradeoff describe?",
+      "options": [
+        "The balance between model simplicity and model complexity",
+        "The relationship between training time and dataset size",
+        "The relationship between CPU usage and GPU usage",
+        "The balance between visualization and computation"
+      ],
+      "correct_option": "The balance between model simplicity and model complexity",
+      "explanation": "Bias–variance tradeoff describes the balance between underfitting and overfitting."
+    },
+    {
+      "question": "What is the role of activation functions in neural networks?",
+      "options": [
+        "To introduce non-linearity into the model",
+        "To normalize the input dataset",
+        "To reduce dataset dimensionality",
+        "To split the dataset into training and testing sets"
+      ],
+      "correct_option": "To introduce non-linearity into the model",
+      "explanation": "Activation functions allow neural networks to model complex nonlinear relationships."
+    },
+    {
+      "question": "Which deep learning framework was used in this course?",
+      "options": [
+        "TensorFlow",
+        "Bootstrap",
+        "Laravel",
+        "Spring"
+      ],
+      "correct_option": "TensorFlow",
+      "explanation": "TensorFlow is used to build and train deep learning models."
+    },
+    {
+      "question": "What type of neural network is most suitable for image processing?",
+      "options": [
+        "Convolutional Neural Networks",
+        "Recurrent Neural Networks",
+        "Linear Regression Models",
+        "K-Nearest Neighbor Models"
+      ],
+      "correct_option": "Convolutional Neural Networks",
+      "explanation": "CNNs are designed to capture spatial patterns in images."
+    },
+    {
+      "question": "Which neural network architecture is commonly used for sequential data such as text?",
+      "options": [
+        "Recurrent Neural Networks",
+        "Decision Trees",
+        "Random Forest",
+        "Naïve Bayes"
+      ],
+      "correct_option": "Recurrent Neural Networks",
+      "explanation": "RNNs are designed to process sequential or time-series data."
+    },
+    {
+      "question": "What is Natural Language Processing mainly concerned with?",
+      "options": [
+        "Understanding and processing human language",
+        "Rendering three-dimensional graphics",
+        "Managing database transactions",
+        "Optimizing network communication"
+      ],
+      "correct_option": "Understanding and processing human language",
+      "explanation": "NLP enables machines to understand, interpret, and generate human language."
+    },
+    {
+      "question": "What is the purpose of a chatbot system?",
+      "options": [
+        "To simulate conversation between a computer system and users",
+        "To monitor system hardware performance",
+        "To manage relational database queries",
+        "To perform numerical matrix computations"
+      ],
+      "correct_option": "To simulate conversation between a computer system and users",
+      "explanation": "Chatbots are conversational AI systems designed to interact with users."
+    }
+  ]
+} */
+
+
+
+
+]
+
+/* ==============================
+   Quiz State
+============================== */
+let currentQuiz = null;
+let currentAttemptQuestions = [];
+let currentAttemptOptions = {};
+let currentQuestion = 0;
+let userAnswers = [];
+let timeRemaining = 0;
+let timerInterval = null;
+
+function getAllowNavigation() { return !!QUIZ_ALLOW_NAVIGATION; }
+function applyNavigationUI() {
+  const allowNav = getAllowNavigation();
+  document.getElementById("prev-btn")?.classList.toggle("d-none", !allowNav);
+  document.getElementById("question-nav")?.classList.toggle("d-none", !allowNav);
+}
+
+function getNextAttemptNumberForQuiz(quizName) {
+  const key = "nextAttemptNumber_" + quizName;
+  let n = parseInt(localStorage.getItem(key) || "1", 10);
+  localStorage.setItem(key, (n + 1).toString());
+  return n;
+}
+
+/* ==============================
+   Pausing (kept as-is)
+============================== */
+function saveCurrentAttempt() {
+  if (!QUIZ_ALLOW_PAUSE) return;
+  if (!currentQuiz) return;
+  const attemptState = { quizName: currentQuiz.name, domain: currentQuiz.domain, currentQuestion, userAnswers, currentAttemptQuestions, currentAttemptOptions, timeRemaining };
+  localStorage.setItem("currentQuizAttempt", JSON.stringify(attemptState));
+}
+function loadSavedAttempt() {
+  if (!QUIZ_ALLOW_PAUSE) return false;
+  const saved = localStorage.getItem("currentQuizAttempt");
+  if (!saved) return false;
+  try {
+    const attemptState = JSON.parse(saved);
+    const quiz = quizzes.find(q => q.name === attemptState.quizName);
+    if (!quiz) return false;
+    currentQuiz = quiz;
+    currentAttemptQuestions = attemptState.currentAttemptQuestions;
+    currentAttemptOptions = attemptState.currentAttemptOptions || {};
+    userAnswers = attemptState.userAnswers || [];
+    currentQuestion = attemptState.currentQuestion || 0;
+    timeRemaining = attemptState.timeRemaining || 0;
+    return true;
+  } catch { return false; }
+}
+function updateTotals() {
+  document.getElementById("total").innerText = currentAttemptQuestions.length;
+  document.getElementById("total-questions").innerText = currentAttemptQuestions.length;
+}
+function renderPausedAttemptBanner() {
+  if (!QUIZ_ALLOW_PAUSE) return;
+  const banner = document.getElementById("paused-attempt-banner");
+  if (!banner) return;
+  const saved = localStorage.getItem("currentQuizAttempt");
+  if (!saved) { banner.innerHTML = ""; return; }
+
+  try {
+    const a = JSON.parse(saved);
+    const answeredCount = (a.userAnswers || []).filter(x => x !== undefined).length;
+    banner.innerHTML = `
+      <div class="alert alert-warning d-flex justify-content-between align-items-center flex-wrap gap-2" style="border-radius: var(--radius);">
+        <div>
+          <strong>Paused attempt found:</strong> ${a.quizName}<br>
+          Progress: ${answeredCount}/${(a.currentAttemptQuestions || []).length} answered
+        </div>
+        <button class="btn btn-sm btn-primary" type="button" onclick="resumePausedAttempt()">
+          <i class="fas fa-play me-1"></i> Resume
+        </button>
+      </div>
+    `;
+  } catch { banner.innerHTML = ""; }
+}
+function resumePausedAttempt() {
+  if (!QUIZ_ALLOW_PAUSE) return;
+  if (loadSavedAttempt()) {
+    document.getElementById("quiz-list").classList.add("d-none");
+    document.getElementById("quiz-start").classList.add("d-none");
+    document.getElementById("result-box").classList.add("d-none");
+    document.getElementById("review-box").classList.add("d-none");
+    document.getElementById("quiz-container").classList.remove("d-none");
+
+    document.getElementById("quiz-name-header").innerText = currentQuiz?.name || "";
+    updateTotals();
+
+    if (timerInterval) clearInterval(timerInterval);
+    if (timeRemaining > 0) startTimer(); else document.getElementById("timer").innerText = "";
+
+    loadQuestion();
+  } else alert("Could not resume paused attempt (data missing).");
+}
+function discardPausedAttempt() {
+  if (!QUIZ_ALLOW_PAUSE) return;
+  if (!localStorage.getItem("currentQuizAttempt")) return alert("No paused attempt found.");
+  if (confirm("Discard the paused attempt? This cannot be undone.")) {
+    localStorage.removeItem("currentQuizAttempt");
+    renderPausedAttemptBanner();
+    alert("Paused attempt discarded.");
+  }
+}
+
+/* ==============================
+   Quiz list / flow
+============================== */
+function populateQuizList() {
+  const quizButtonsDiv = document.getElementById("quiz-buttons");
+  quizButtonsDiv.innerHTML = "";
+  renderPausedAttemptBanner();
+
+  quizzes.forEach((quiz, index) => {
+    const qCount = getEffectiveQuestionCount(quiz);
+    const tMin = getEffectiveTimeLimitMinutes(quiz);
+    const col = document.createElement("div");
+    col.className = "col-lg-3 col-md-6 col-sm-12";
+    col.innerHTML = `
+      <div class="quiz-card h-100" onclick="selectQuiz(${index})">
+        <div class="quiz-card-body">
+          <h5 class="quiz-title">${quiz.name}</h5>
+          <p class="quiz-domain"><strong>${quiz.domain}</strong></p>
+          <p class="quiz-description">${quiz.bio}</p>
+          <div class="quiz-details">
+            <span><i class="fas fa-layer-group"></i> ${quiz.mode}</span>
+            <span><i class="fas fa-list-ol"></i> ${qCount} Q</span>
+            <span><i class="fas fa-clock"></i> ${formatMinutes(tMin)} min</span>
+          </div>
+        </div>
+      </div>
+    `;
+    quizButtonsDiv.appendChild(col);
+  });
+}
+
+function selectQuiz(index) {
+  currentQuiz = quizzes[index];
+  currentQuestion = 0;
+  userAnswers = [];
+
+  const qCount = getEffectiveQuestionCount(currentQuiz);
+  const tMin = getEffectiveTimeLimitMinutes(currentQuiz);
+
+  document.getElementById("quiz-title").innerText = currentQuiz.name + " - Instructions";
+  document.getElementById("quiz-name-header").innerText = currentQuiz.name;
+  document.getElementById("quiz-info").innerHTML = `
+    <p class="text-muted mb-1">Domain: <strong>${currentQuiz.domain}</strong></p>
+    <p class="mb-1">${currentQuiz.bio}</p>
+    <p class="mb-1"><strong>Mode:</strong> ${currentQuiz.mode} | <strong>Questions:</strong> ${qCount}</p>
+    <p class="mb-0"><strong>Time Limit:</strong> ${formatMinutes(tMin)} min (${DEFAULT_MINUTES_PER_QUESTION} min/question)</p>
+  `;
+
+  document.getElementById("total").innerText = qCount;
+  document.getElementById("total-questions").innerText = qCount;
+
+  document.getElementById("quiz-list").classList.add("d-none");
+  document.getElementById("quiz-start").classList.remove("d-none");
+}
+
+function startQuiz() {
+  const qCount = getEffectiveQuestionCount(currentQuiz);
+  const tMin = getEffectiveTimeLimitMinutes(currentQuiz);
+
+  currentAttemptQuestions = shuffleArray([...currentQuiz.questions]);
+  if (qCount < currentAttemptQuestions.length) currentAttemptQuestions = currentAttemptQuestions.slice(0, qCount);
+
+  currentAttemptOptions = {};
+  currentQuestion = 0;
+  userAnswers = [];
+  updateTotals();
+
+  if (timerInterval) clearInterval(timerInterval);
+  timeRemaining = Math.max(0, Math.round(tMin * 60));
+  if (timeRemaining > 0) startTimer(); else document.getElementById("timer").innerText = "";
+
+  if (QUIZ_ALLOW_PAUSE) {
+    localStorage.removeItem("currentQuizAttempt");
+    renderPausedAttemptBanner();
+  }
+
+  document.getElementById("quiz-start").classList.add("d-none");
+  document.getElementById("result-box").classList.add("d-none");
+  document.getElementById("review-box").classList.add("d-none");
+  document.getElementById("quiz-container").classList.remove("d-none");
+  loadQuestion();
+}
+
+function startTimer() {
+  updateTimerDisplay();
+  timerInterval = setInterval(() => {
+    timeRemaining--;
+    if (timeRemaining <= 0) {
+      clearInterval(timerInterval);
+      timeRemaining = 0;
+      updateTimerDisplay();
+      alert("Time is up! Submitting your quiz.");
+      submitQuiz();
+    } else {
+      updateTimerDisplay();
+      saveCurrentAttempt();
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const timerEl = document.getElementById("timer");
+  const minutes = Math.floor(timeRemaining / 60);
+  const seconds = timeRemaining % 60;
+  timerEl.innerText = `Time Left: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+}
+
+function pauseQuiz() {
+  if (!QUIZ_ALLOW_PAUSE) return;
+  if (!currentQuiz) return;
+  saveCurrentAttempt();
+  if (timerInterval) clearInterval(timerInterval);
+
+  alert("Quiz paused. You can resume later from this browser.");
+
+  document.getElementById("quiz-container").classList.add("d-none");
+  document.getElementById("quiz-start").classList.add("d-none");
+  document.getElementById("result-box").classList.add("d-none");
+  document.getElementById("review-box").classList.add("d-none");
+
+  document.getElementById("quiz-list").classList.remove("d-none");
+  populateQuizList();
+}
+
+function loadQuestion() {
+  const q = currentAttemptQuestions[currentQuestion];
+  if (!q) return;
+
+  document.getElementById("question-text").innerText = q.question;
+
+  let shuffledOpts = currentAttemptOptions[currentQuestion];
+  if (!shuffledOpts) {
+    shuffledOpts = shuffleArray([...q.options]);
+    currentAttemptOptions[currentQuestion] = shuffledOpts;
+  }
+
+  const userAnswer = userAnswers[currentQuestion];
+  document.getElementById("options").innerHTML = shuffledOpts
+    .map((opt, i) => {
+      const isSelected = userAnswer === opt;
+      return `<div class="option ${isSelected ? "selected" : ""}" onclick="selectAnswer(${i})">${opt}</div>`;
+    })
+    .join("");
+
+  document.getElementById("current").innerText = currentQuestion + 1;
+
+  applyNavigationUI();
+  applyPauseUI();
+
+  const nextBtn = document.getElementById("next-btn");
+  if (nextBtn) nextBtn.disabled = userAnswers[currentQuestion] === undefined;
+
+  const submitBtn = document.getElementById("submit-btn");
+  if (currentQuestion === currentAttemptQuestions.length - 1) {
+    submitBtn.classList.remove("d-none");
+    nextBtn.classList.add("d-none");
+  } else {
+    submitBtn.classList.add("d-none");
+    nextBtn.classList.remove("d-none");
+  }
+
+  const prevBtn = document.getElementById("prev-btn");
+  if (prevBtn) prevBtn.disabled = currentQuestion === 0;
+
+  const navContainer = document.getElementById("question-nav");
+  if (navContainer && getAllowNavigation()) {
+    navContainer.innerHTML = currentAttemptQuestions
+      .map((_, i) => {
+        const answered = userAnswers[i] !== undefined;
+        const isActive = i === currentQuestion;
+        let classes = "btn btn-sm me-1 mb-1 ";
+        if (isActive) classes += "btn-primary";
+        else if (answered) classes += "btn-success";
+        else classes += "btn-outline-secondary";
+        return `<button type="button" class="${classes}" onclick="goToQuestion(${i})">Q${i + 1}</button>`;
+      })
+      .join("");
+  } else if (navContainer) navContainer.innerHTML = "";
+
+  saveCurrentAttempt();
+}
+
+function selectAnswer(index) {
+  const opts = currentAttemptOptions[currentQuestion];
+  if (!opts) return;
+
+  userAnswers[currentQuestion] = opts[index];
+  document.querySelectorAll(".option").forEach((el, i) => el.classList.toggle("selected", i === index));
+
+  const nextBtn = document.getElementById("next-btn");
+  if (nextBtn) nextBtn.disabled = false;
+  saveCurrentAttempt();
+}
+
+function nextQuestion() {
+  if (currentQuestion < currentAttemptQuestions.length - 1) {
+    currentQuestion++;
+    loadQuestion();
+  }
+}
+function prevQuestion() {
+  if (!getAllowNavigation()) return;
+  if (currentQuestion > 0) {
+    currentQuestion--;
+    loadQuestion();
+  }
+}
+function goToQuestion(index) {
+  if (!getAllowNavigation()) return;
+  if (index >= 0 && index < currentAttemptQuestions.length) {
+    currentQuestion = index;
+    loadQuestion();
+  }
+}
+
+function submitQuiz() {
+  if (timerInterval) clearInterval(timerInterval);
+
+  let score = 0;
+  currentAttemptQuestions.forEach((q, i) => {
+    if (userAnswers[i] === q.correct_option) score++;
+  });
+
+  const percentage = Math.round((score / currentAttemptQuestions.length) * 100);
+  document.getElementById("score").innerText = score;
+  document.getElementById("percentage").innerText = percentage;
+
+  document.getElementById("quiz-container").classList.add("d-none");
+  document.getElementById("result-box").classList.remove("d-none");
+
+  const attemptNumber = getNextAttemptNumberForQuiz(currentQuiz.name);
+  let attempts = JSON.parse(localStorage.getItem("quizAttempts")) || [];
+
+  const attempt = {
+    attemptNumber,
+    quizName: currentQuiz.name,
+    domain: currentQuiz.domain,
+    date: new Date().toLocaleString(),
+    score,
+    total: currentAttemptQuestions.length,
+    percentage,
+    answers: userAnswers,
+    shuffledQuestions: currentAttemptQuestions,
+    shuffledOptions: currentAttemptOptions
+  };
+
+  attempts.push(attempt);
+  localStorage.setItem("quizAttempts", JSON.stringify(attempts));
+
+  if (QUIZ_ALLOW_PAUSE) {
+    localStorage.removeItem("currentQuizAttempt");
+    renderPausedAttemptBanner();
+  }
+
+  updateAttemptsHistory();
+  updateStats();
+
+  //  Try to submit (respects user privacy setting + backoff)
+  scheduleSendSoon();
+}
+
+function reviewAnswersCurrent() {
+  if (!currentAttemptQuestions || currentAttemptQuestions.length === 0) return;
+  document.getElementById("review-box").classList.remove("d-none");
+
+  const navHtml = `
+    <div class="mb-3 d-flex flex-wrap gap-2">
+      ${currentAttemptQuestions.map((_, i) =>
+        `<button type="button" class="btn btn-sm btn-outline-secondary" onclick="scrollToReviewQuestion(${i})">Q${i + 1}</button>`
+      ).join("")}
+    </div>
+  `;
+
+  const questionsHtml = currentAttemptQuestions.map((q, i) => {
+    const opts = currentAttemptOptions[i];
+    return `
+      <div class="review mb-3" id="review-q-${i}">
+        <p><strong>Q${i + 1}: ${q.question}</strong></p>
+        <ul class="p-0">
+          ${opts.map(opt => {
+            let optionClass = "review-option neutral";
+            let icon = "";
+            if (opt === q.correct_option) { optionClass = "review-option correct"; icon = ' <i class="fas fa-check text-success"></i>'; }
+            if (opt === userAnswers[i] && userAnswers[i] !== q.correct_option) { optionClass = "review-option incorrect"; icon = ' <i class="fas fa-times text-danger"></i>'; }
+            return `<li class="${optionClass}" style="list-style:none;">${opt}${icon}</li>`;
+          }).join("")}
+        </ul>
+        <p class="text-muted"><em>Explanation:</em> ${q.explanation}</p>
+      </div>
+    `;
+  }).join("");
+
+  document.getElementById("review-content").innerHTML = navHtml + questionsHtml;
+}
+function scrollToReviewQuestion(index) {
+  document.getElementById(`review-q-${index}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function reviewSavedAttempt(attemptIndex) {
+  const attempts = JSON.parse(localStorage.getItem("quizAttempts")) || [];
+  if (attempts.length === 0) return alert("No saved attempts found.");
+
+  const attempt = attempts[attemptIndex];
+  const quizData = attempt.shuffledQuestions;
+  const optionsData = attempt.shuffledOptions;
+
+  if (!quizData || !optionsData || !attempt.answers || attempt.answers.length !== quizData.length) {
+    alert("Review data is incomplete for this attempt.");
+    return;
+  }
+
+  let reviewHeader = `
+    <div class="mb-3">
+      <h4>${attempt.quizName} (Attempt ${attempt.attemptNumber})</h4>
+      <p class="text-muted mb-1">Domain: ${attempt.domain}</p>
+      <p class="text-muted mb-1">Date: ${attempt.date}</p>
+      <p class="mb-0"><strong>Score:</strong> ${attempt.score} / ${attempt.total} (${attempt.percentage}%)</p>
+    </div>
+  `;
+
+  let reviewDetails = quizData.map((q, i) => {
+    const opts = optionsData[i];
+    return `
+      <div class="review mb-3">
+        <p><strong>Q${i + 1}: ${q.question}</strong></p>
+        <ul class="p-0">
+          ${opts.map(opt => {
+            let optionClass = "review-option neutral";
+            let icon = "";
+            if (opt === q.correct_option) { optionClass = "review-option correct"; icon = ' <i class="fas fa-check text-success"></i>'; }
+            if (opt === attempt.answers[i] && attempt.answers[i] !== q.correct_option) { optionClass = "review-option incorrect"; icon = ' <i class="fas fa-times text-danger"></i>'; }
+            return `<li class="${optionClass}" style="list-style:none;">${opt}${icon}</li>`;
+          }).join("")}
+        </ul>
+        <p class="text-muted"><em>Explanation:</em> ${q.explanation}</p>
+      </div>
+    `;
+  }).join("");
+
+  document.getElementById("review-saved-box").classList.remove("d-none");
+  document.getElementById("review-saved-content").innerHTML = reviewHeader + reviewDetails;
+  switchTab("attempts");
+}
+
+function updateAttemptsHistory() {
+  let attempts = JSON.parse(localStorage.getItem("quizAttempts")) || [];
+  let historyHTML = "";
+
+  if (attempts.length > 0) {
+    historyHTML += "<h3>Previous Attempts</h3>";
+    historyHTML += "<table class='table table-striped mb-0'><thead><tr><th>Attempt</th><th>Date</th><th>Score</th><th>Percentage</th><th>Review</th></tr></thead><tbody>";
+    for (let i = attempts.length - 1; i >= 0; i--) {
+      const attempt = attempts[i];
+      const attemptLabel = `${attempt.quizName} (Attempt ${attempt.attemptNumber})`;
+      historyHTML += `<tr>
+        <td>${attemptLabel}</td>
+        <td>${attempt.date}</td>
+        <td>${attempt.score}/${attempt.total}</td>
+        <td>${attempt.percentage}%</td>
+        <td><button class="btn btn-sm btn-info" onclick="reviewSavedAttempt(${i})"><i class="fas fa-eye"></i> Review</button></td>
+      </tr>`;
+    }
+    historyHTML += "</tbody></table>";
+  } else {
+    historyHTML = "<p class='text-muted'>No previous attempts.</p>";
+  }
+
+  document.getElementById("attempts-history").innerHTML = historyHTML;
+  document.getElementById("attempts-history-tab").innerHTML = historyHTML;
+}
+
+function updateStats() {
+  const totalQuizzes = quizzes.length;
+  let totalQuestions = 0;
+  quizzes.forEach(q => { totalQuestions += (q.questions?.length || 0); });
+
+  let attempts = JSON.parse(localStorage.getItem("quizAttempts")) || [];
+  const totalAttempts = attempts.length;
+
+  let overallSum = 0;
+  let overallBest = 0;
+  attempts.forEach(a => { overallSum += a.percentage; if (a.percentage > overallBest) overallBest = a.percentage; });
+  const overallAvg = totalAttempts > 0 ? Math.round(overallSum / totalAttempts) : 0;
+
+  document.getElementById("stat-total-quizzes").innerText = totalQuizzes;
+  document.getElementById("stat-total-questions").innerText = totalQuestions;
+  document.getElementById("stat-total-attempts").innerText = totalAttempts;
+  document.getElementById("stat-best-score").innerText = overallBest + "%";
+
+  let statsHtml = `<div class="row domain-stats-row justify-content-center">`;
+
+  if (totalAttempts > 0) {
+    statsHtml += `
+      <div class="col-sm-6 col-md-4 col-lg-3 domain-stats-col">
+        <h5>General Average</h5>
+        <circle-progress value="${overallAvg}" max="100" text-format="percent"></circle-progress>
+      </div>
+    `;
+  }
+
+  let domainStats = {};
+  attempts.forEach(attempt => {
+    const domain = attempt.domain || "Unknown";
+    if (!domainStats[domain]) domainStats[domain] = { count: 0, sum: 0 };
+    domainStats[domain].count++;
+    domainStats[domain].sum += attempt.percentage;
+  });
+
+  if (totalAttempts > 0) {
+    for (const domainName in domainStats) {
+      const dStats = domainStats[domainName];
+      const dAvg = Math.round(dStats.sum / dStats.count);
+      statsHtml += `
+        <div class="col-sm-6 col-md-4 col-lg-3 domain-stats-col">
+          <h5>${domainName}</h5>
+          <circle-progress value="${dAvg}" max="100" text-format="percent"></circle-progress>
+        </div>
+      `;
+    }
+  } else {
+    statsHtml += `<p class="text-muted">No attempts yet to calculate domain stats.</p>`;
+  }
+
+  statsHtml += `</div>`;
+  document.getElementById("stats").innerHTML = statsHtml;
+}
+
+function clearSavedData() {
+  if (confirm("Are you sure you want to delete all saved attempt data?")) {
+    localStorage.removeItem("quizAttempts");
+    localStorage.removeItem("currentQuizAttempt");
+    localStorage.removeItem("pendingSubmissionPayload");
+    localStorage.removeItem("pendingSubmissionSnapshot");
+    quizzes.forEach(q => localStorage.removeItem("nextAttemptNumber_" + q.name));
+    updateAttemptsHistory();
+    updateStats();
+    renderPausedAttemptBanner();
+    scheduleSendSoon();
+    alert("Saved data has been cleared.");
+  }
+}
+
+function switchTab(tabName) {
+  document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('d-none'));
+  document.getElementById('tab-' + tabName).classList.remove('d-none');
+
+  document.querySelectorAll('#sidebarMenu a, #sidebarMenuMobile a').forEach(link => link.classList.remove('active'));
+  document.getElementById('menu-' + tabName)?.classList.add('active');
+  document.getElementById('menu-' + tabName + '-mobile')?.classList.add('active');
+
+  if (tabName === 'quiz') {
+    document.getElementById("quiz-list").classList.remove("d-none");
+    document.getElementById("quiz-start").classList.add("d-none");
+    document.getElementById("quiz-container").classList.add("d-none");
+    document.getElementById("result-box").classList.add("d-none");
+    document.getElementById("review-box").classList.add("d-none");
+    populateQuizList();
+  }
+  if (tabName === 'attempts') updateAttemptsHistory();
+  if (tabName === 'home') updateStats();
+
+  applyNavigationUI();
+  applyPauseUI();
+}
+
+function closeOffcanvas() {
+  let offcanvasElement = document.getElementById('offcanvasSidebar');
+  let bsOffcanvas = bootstrap.Offcanvas.getInstance(offcanvasElement);
+  if (bsOffcanvas) bsOffcanvas.hide();
+}
+
+function toggleDarkMode() {
+  document.body.classList.toggle("dark-mode");
+  const toggleButton = document.getElementById("dark-mode-toggle");
+  if (toggleButton) {
+    toggleButton.innerHTML = document.body.classList.contains("dark-mode")
+      ? '<i class="fas fa-sun me-2"></i> Toggle Dark Mode'
+      : '<i class="fas fa-moon me-2"></i> Toggle Dark Mode';
+  }
+}
+
+/* ==============================
+   LOGIN + SUBMISSION SYSTEM
+============================== */
+const SESSION_NAME = "MLAIMarch2026";
+const CERT_NAME = "MLAI";
+const API_URL = "https://bouke.xyz/api/submitquiz/index.php";
+
+/*  user preference: share progress? */
+const SHARE_PREF_KEY = "shareProgressEnabled";
+function isSharingEnabled(){
+  const raw = localStorage.getItem(SHARE_PREF_KEY);
+  // default ON
+  return raw === null ? true : raw === "1";
+}
+function setSharingEnabled(v){
+  localStorage.setItem(SHARE_PREF_KEY, v ? "1" : "0");
+  updateSubmissionStatusUI();
+}
+
+/* submission state + backoff */
+let lastQuizHistorySnapshot = localStorage.getItem("quizAttempts") || "";
+let backoffMs = 1500;
+let backoffTimer = null;
+
+const PENDING_PAYLOAD_KEY = "pendingSubmissionPayload";
+const PENDING_SNAPSHOT_KEY = "pendingSubmissionSnapshot";
+
+function generateUserId(name, password) { return btoa(name + ":" + password); }
+
+function saveUserCredentials() {
+  let name = document.getElementById("username").value.trim();
+  let password = document.getElementById("password").value.trim();
+  if (!name || !password) return alert("Please enter both name and password.");
+
+  let userId = generateUserId(name, password);
+  let userCredentials = { name, userId, sessionName: SESSION_NAME, certName: CERT_NAME };
+  localStorage.setItem("userCredentials", JSON.stringify(userCredentials));
+  alert(`Welcome ${name}! You are registered in ${SESSION_NAME} for ${CERT_NAME}.`);
+  location.reload();
+}
+
+function checkUserLogin() {
+  let userData = localStorage.getItem("userCredentials");
+  if (!userData) {
+    let loginModal = new bootstrap.Modal(document.getElementById("loginModal"));
+    loginModal.show();
+  } else {
+    let userInfo = JSON.parse(userData);
+    document.getElementById("userDisplay").innerHTML = `${userInfo.name}<br>(${userInfo.sessionName})`;
+  }
+}
+
+function buildPayload() {
+  let userCredentials = JSON.parse(localStorage.getItem("userCredentials"));
+  let currentQuizHistory = localStorage.getItem("quizAttempts") || "[]";
+  if (!userCredentials || currentQuizHistory === "[]") return null;
+
+  return {
+    userId: userCredentials.userId,
+    userName: userCredentials.name,
+    sessionName: userCredentials.sessionName,
+    certName: userCredentials.certName,
+    fullQuizHistory: JSON.parse(currentQuizHistory)
+  };
+}
+
+/*  unified status UI helper */
+function setStatus(text, dotColor){
+  const el1 = document.getElementById("submitStatusText");
+  const el2 = document.getElementById("submitStatusText2");
+  const dot1 = document.getElementById("submitDot");
+  const dot2 = document.getElementById("submitDot2");
+  if (el1) el1.textContent = `Submission status: ${text}`;
+  if (el2) el2.textContent = `Submission status: ${text}`;
+  if (dot1) dot1.style.background = dotColor;
+  if (dot2) dot2.style.background = dotColor;
+}
+
+function updateSubmissionStatusUI(){
+  if (!isSharingEnabled()){
+    setStatus("Sharing Off (local only)", "#9ca3af");
+    return;
+  }
+  const pending = localStorage.getItem(PENDING_PAYLOAD_KEY);
+  if (pending){
+    setStatus("Pending / may be blocked (manual export available)", "#f59e0b");
+  } else {
+    setStatus("Ready", "#60a5fa");
+  }
+}
+
+/*  attempts to send; if blocked, queue payload + backoff */
+async function trySendOnce(payload, snapshot){
+  try {
+    // Using fetch: most common to be blocked by DLP/firewalls if policy says so
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 6000);
+
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      keepalive: true,
+      signal: controller.signal
+    });
+
+    clearTimeout(timeout);
+
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json().catch(() => ({}));
+    if (!data || data.success !== true) throw new Error("Server rejected");
+
+    // success
+    lastQuizHistorySnapshot = snapshot;
+    localStorage.removeItem(PENDING_PAYLOAD_KEY);
+    localStorage.removeItem(PENDING_SNAPSHOT_KEY);
+    backoffMs = 1500;
+    setStatus("Submitted", "#22c55e");
+    return true;
+  } catch (e) {
+    // queue for later + show user
+    localStorage.setItem(PENDING_PAYLOAD_KEY, JSON.stringify(payload));
+    localStorage.setItem(PENDING_SNAPSHOT_KEY, snapshot);
+    setStatus("Blocked/failed (queued)", "#ef4444");
+    return false;
+  }
+}
+
+function scheduleSendSoon(){
+  if (!isSharingEnabled()){
+    updateSubmissionStatusUI();
+    return;
+  }
+
+  // only send if changed
+  const currentQuizHistory = localStorage.getItem("quizAttempts") || "[]";
+  if (currentQuizHistory === "[]" || currentQuizHistory === lastQuizHistorySnapshot) {
+    // If we have a pending payload, still retry sometimes
+    if (!localStorage.getItem(PENDING_PAYLOAD_KEY)) {
+      setStatus("Up to date", "#22c55e");
+      return;
+    }
+  }
+
+  // cancel any existing scheduled send
+  if (backoffTimer) clearTimeout(backoffTimer);
+
+  backoffTimer = setTimeout(async () => {
+    const payload = buildPayload();
+    if (!payload) { updateSubmissionStatusUI(); return; }
+
+    // prefer pending snapshot if present (keeps stable)
+    const pendingPayloadRaw = localStorage.getItem(PENDING_PAYLOAD_KEY);
+    const pendingSnapshot = localStorage.getItem(PENDING_SNAPSHOT_KEY);
+
+    const finalPayload = pendingPayloadRaw ? JSON.parse(pendingPayloadRaw) : payload;
+    const finalSnapshot = pendingSnapshot || currentQuizHistory;
+
+    setStatus("Sending...", "#60a5fa");
+    const ok = await trySendOnce(finalPayload, finalSnapshot);
+
+    // If blocked, exponential backoff (max 2 minutes) so we don’t hammer the network
+    if (!ok) {
+      backoffMs = Math.min(backoffMs * 2, 120000);
+      scheduleSendSoon();
+    }
+  }, Math.min(backoffMs, 4000)); // quick attempt first
+}
+
+function forceSendNow(){
+  backoffMs = 500;
+  scheduleSendSoon();
+}
+
+/* Manual fallback: copy JSON */
+async function copyProgressJSON(){
+  const payload = buildPayload();
+  const txt = payload ? JSON.stringify(payload, null, 2) : JSON.stringify({ error: "No progress to export" }, null, 2);
+  try{
+    await navigator.clipboard.writeText(txt);
+    alert("Progress JSON copied to clipboard. You can paste it to the instructor.");
+  }catch{
+    // fallback prompt
+    window.prompt("Copy your progress JSON:", txt);
+  }
+}
+
+/* Send on page hide/exit as best effort (still can be blocked) */
+function flushSubmission(){
+  if (!isSharingEnabled()) return;
+
+  const currentQuizHistory = localStorage.getItem("quizAttempts") || "[]";
+  const pendingPayloadRaw = localStorage.getItem(PENDING_PAYLOAD_KEY);
+
+  if (currentQuizHistory === "[]" && !pendingPayloadRaw) return;
+
+  const payload = pendingPayloadRaw ? JSON.parse(pendingPayloadRaw) : buildPayload();
+  if (!payload) return;
+
+  // Use sendBeacon if available (sometimes more reliable)
+  try{
+    if (navigator.sendBeacon){
+      const blob = new Blob([JSON.stringify(payload)], { type: "application/json" });
+      const ok = navigator.sendBeacon(API_URL, blob);
+      if (ok){
+        // Not guaranteed delivery, but likely.
+        setStatus("Sent (beacon)", "#22c55e");
+      } else {
+        // queue remains
+        localStorage.setItem(PENDING_PAYLOAD_KEY, JSON.stringify(payload));
+        localStorage.setItem(PENDING_SNAPSHOT_KEY, currentQuizHistory);
+      }
+    }
+  }catch{}
+}
+
+/* ==============================
+   Export / Import Progress
+============================== */
+function exportProgress() {
+  const data = {};
+  const keysToAlwaysInclude = ["quizAttempts", "userCredentials", SHARE_PREF_KEY, PENDING_PAYLOAD_KEY, PENDING_SNAPSHOT_KEY];
+
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (keysToAlwaysInclude.includes(key) || key.startsWith("nextAttemptNumber_")) {
+      data[key] = localStorage.getItem(key);
+    }
+  }
+
+  const userCredentialsRaw = localStorage.getItem("userCredentials");
+  let userName = "user";
+  let certName = (typeof CERT_NAME !== "undefined" && CERT_NAME) ? CERT_NAME : "CERT";
+
+  if (userCredentialsRaw) {
+    try {
+      const userCredentials = JSON.parse(userCredentialsRaw);
+      if (userCredentials && userCredentials.name) userName = userCredentials.name;
+      if (userCredentials && userCredentials.certName) certName = userCredentials.certName;
+    } catch {}
+  }
+
+  data.__meta = { exportedAt: new Date().toISOString(), certName, userName };
+
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm   = String(now.getMonth() + 1).padStart(2, "0");
+  const dd   = String(now.getDate()).padStart(2, "0");
+  const hh   = String(now.getHours()).padStart(2, "0");
+  const min  = String(now.getMinutes()).padStart(2, "0");
+
+  const fileName = `${certName}_${userName}_${yyyy}${mm}${dd}_${hh}${min}`.replace(/\s+/g,"_").replace(/[^\w\-]+/g,"") + ".json";
+
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function importProgress(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      Object.keys(data).forEach(key => {
+        if (key === "__meta") return;
+        localStorage.setItem(key, data[key]);
+      });
+
+      if (typeof updateAttemptsHistory === "function") updateAttemptsHistory();
+      if (typeof updateStats === "function") updateStats();
+      if (typeof checkUserLogin === "function") checkUserLogin();
+      if (typeof populateQuizList === "function") populateQuizList();
+
+      // refresh share toggle UI
+      initShareToggleUI();
+
+      event.target.value = "";
+      alert("Progress imported successfully!");
+      scheduleSendSoon();
+    } catch (err) {
+      console.error("Error importing progress:", err);
+      alert("Invalid import file.");
+    }
+  };
+  reader.readAsText(file);
+}
+
+/* ==============================
+   Settings: Share toggle UI
+============================== */
+function initShareToggleUI(){
+  const el = document.getElementById("shareProgressToggle");
+  if (!el) return;
+  el.checked = isSharingEnabled();
+  el.addEventListener("change", () => {
+    setSharingEnabled(el.checked);
+
+    // If turning OFF, stop queued sends but keep local data
+    if (!el.checked){
+      setStatus("Sharing Off (local only)", "#9ca3af");
+      if (backoffTimer) clearTimeout(backoffTimer);
+      // keep pending payload (optional). If you prefer, clear it:
+      // localStorage.removeItem(PENDING_PAYLOAD_KEY);
+      // localStorage.removeItem(PENDING_SNAPSHOT_KEY);
+    } else {
+      scheduleSendSoon();
+    }
+  });
+
+  updateSubmissionStatusUI();
+}
+
+/* ==============================
+   DOM Ready
+============================== */
+document.addEventListener("DOMContentLoaded", function () {
+  applyNavigationUI();
+  applyPauseUI();
+  showChromeBannerIfNeeded();
+  setupMobileMenuToggle();
+
+  // init share toggle
+  initShareToggleUI();
+
+  // If pause OFF, remove any old paused attempt
+  if (!QUIZ_ALLOW_PAUSE) localStorage.removeItem("currentQuizAttempt");
+
+  // login check
+  checkUserLogin();
+
+  // Resume only if pause enabled
+  if (QUIZ_ALLOW_PAUSE && localStorage.getItem("currentQuizAttempt")) {
+    if (confirm("Resume your in-progress quiz attempt?")) {
+      if (loadSavedAttempt()) {
+        document.getElementById("quiz-start").classList.add("d-none");
+        document.getElementById("result-box").classList.add("d-none");
+        document.getElementById("review-box").classList.add("d-none");
+        document.getElementById("quiz-container").classList.remove("d-none");
+        updateTotals();
+
+        if (timerInterval) clearInterval(timerInterval);
+        if (timeRemaining > 0) startTimer(); else document.getElementById("timer").innerText = "";
+
+        loadQuestion();
+        switchTab("quiz");
+        scheduleSendSoon();
+        return;
+      }
+    }
+  }
+
+  switchTab('home');
+
+  // attempt to send any pending payload if sharing is ON
+  scheduleSendSoon();
+});
+
+/* best-effort flush */
+window.addEventListener("beforeunload", flushSubmission);
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") flushSubmission();
+});
+  </script>
+
+</body>
+</html>
