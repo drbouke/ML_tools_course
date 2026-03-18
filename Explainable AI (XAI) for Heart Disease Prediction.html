@@ -1,0 +1,557 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Explainable AI (XAI) for Heart Disease Prediction</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-light">
+
+<main class="container py-4">
+<div class="row justify-content-center">
+<div class="col-lg-10">
+
+<div class="card shadow-sm">
+<div class="card-body">
+
+<div class="d-flex justify-content-between align-items-center mb-2">
+<h1 class="h4 mb-0">Explainable AI (XAI) for Heart Disease Prediction</h1>
+</div>
+
+<p class="text-secondary mb-4">
+Topics: Explainable AI, Pipeline, ColumnTransformer, Logistic Regression, LIME, SHAP, Local Explanation, Global Explanation
+</p>
+
+<h2 class="h6">Dataset</h2>
+
+<p>
+In this exercise you will work with the <strong>Heart Disease Dataset</strong>.
+</p>
+
+<p>
+Each row represents a patient and contains medical attributes used to predict whether the patient has heart disease.
+</p>
+
+<p>
+The target variable is <strong>AHD</strong> (Atherosclerotic Heart Disease).
+</p>
+
+<hr class="my-4">
+
+<h2 class="h6">Feature Description</h2>
+
+<table class="table table-sm">
+<thead>
+<tr>
+<th>Feature</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>Age</td><td>Age of the patient</td></tr>
+<tr><td>Sex</td><td>Gender of the patient</td></tr>
+<tr><td>ChestPain</td><td>Type of chest pain</td></tr>
+<tr><td>RestBP</td><td>Resting blood pressure</td></tr>
+<tr><td>Chol</td><td>Serum cholesterol level</td></tr>
+<tr><td>Fbs</td><td>Fasting blood sugar</td></tr>
+<tr><td>RestECG</td><td>Resting ECG results</td></tr>
+<tr><td>MaxHR</td><td>Maximum heart rate achieved</td></tr>
+<tr><td>ExAng</td><td>Exercise induced angina</td></tr>
+<tr><td>Oldpeak</td><td>ST depression induced by exercise</td></tr>
+<tr><td>Slope</td><td>Slope of peak exercise ST segment</td></tr>
+<tr><td>Ca</td><td>Number of major vessels colored by fluoroscopy</td></tr>
+<tr><td>Thal</td><td>Thalassemia type</td></tr>
+<tr><td>AHD</td><td>Heart disease diagnosis (Yes / No)</td></tr>
+</tbody>
+</table>
+
+<hr class="my-4">
+
+<h2 class="h6">Goal</h2>
+
+<p>
+The goal is to build a machine learning model that predicts whether a patient has heart disease and then explain how the model makes its decisions.
+</p>
+
+<p>
+You will complete the following steps:
+</p>
+
+<ul>
+<li>Clean the dataset</li>
+<li>Define feature types</li>
+<li>Build a preprocessing pipeline</li>
+<li>Train a classification model</li>
+<li>Evaluate the model</li>
+<li>Explain the model globally</li>
+<li>Explain one individual prediction locally</li>
+</ul>
+
+<hr class="my-4">
+
+<h2 class="h6">Step 1: Load the Dataset</h2>
+
+<pre class="bg-dark text-white p-3 rounded small"><code>
+import pandas as pd
+
+df = pd.read_csv("Heart.csv")
+
+print(df.head())
+</code></pre>
+
+<hr class="my-4">
+
+<h2 class="h6">Step 2: Remove Unnecessary Columns</h2>
+
+<p>
+Remove the column <code>Unnamed: 0</code> because it only represents row indices.
+</p>
+
+<pre class="bg-dark text-white p-3 rounded small"><code>
+df.drop(columns=["Unnamed: 0"], inplace=True)
+</code></pre>
+
+<hr class="my-4">
+
+<h2 class="h6">Step 3: Handle Missing Values</h2>
+
+<pre class="bg-dark text-white p-3 rounded small"><code>
+df.isnull().sum()
+</code></pre>
+
+<p>
+Fill missing values in the column <code>Ca</code> using the median.
+</p>
+
+<pre class="bg-dark text-white p-3 rounded small"><code>
+df["Ca"].fillna(df["Ca"].median(), inplace=True)
+</code></pre>
+
+<hr class="my-4">
+
+<h2 class="h6">Step 4: Define Features and Target</h2>
+
+<pre class="bg-dark text-white p-3 rounded small"><code>
+X = df.drop(columns=["AHD"])
+y = df["AHD"]
+</code></pre>
+
+<hr class="my-4">
+
+<h2 class="h6">Step 5: Identify Feature Types</h2>
+
+<pre class="bg-dark text-white p-3 rounded small"><code>
+numeric_features = [
+    "Age",
+    "RestBP",
+    "Chol",
+    "MaxHR",
+    "Oldpeak",
+    "Ca"
+]
+
+categorical_features = [
+    "Sex",
+    "ChestPain",
+    "Fbs",
+    "RestECG",
+    "ExAng",
+    "Slope",
+    "Thal"
+]
+</code></pre>
+
+<hr class="my-4">
+
+<h2 class="h6">Step 6: Train Test Split</h2>
+
+<pre class="bg-dark text-white p-3 rounded small"><code>
+from sklearn.model_selection import train_test_split
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.2,
+    random_state=42,
+    stratify=y
+)
+</code></pre>
+
+<hr class="my-4">
+
+<h2 class="h6">Step 7: Build Preprocessing Transformer</h2>
+
+<pre class="bg-dark text-white p-3 rounded small"><code>
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+
+preprocessor = ColumnTransformer(
+    transformers=[
+        ("num", StandardScaler(), numeric_features),
+        ("cat", OneHotEncoder(drop="first", handle_unknown="ignore"), categorical_features)
+    ]
+)
+</code></pre>
+
+<hr class="my-4">
+
+<h2 class="h6">Step 8: Create Machine Learning Pipeline</h2>
+
+<pre class="bg-dark text-white p-3 rounded small"><code>
+from sklearn.pipeline import Pipeline
+from sklearn.linear_model import LogisticRegression
+
+pipeline = Pipeline(steps=[
+    ("preprocessing", preprocessor),
+    ("classifier", LogisticRegression(max_iter=1000))
+])
+</code></pre>
+
+<hr class="my-4">
+
+<h2 class="h6">Step 9: Train the Model</h2>
+
+<pre class="bg-dark text-white p-3 rounded small"><code>
+pipeline.fit(X_train, y_train)
+
+y_pred = pipeline.predict(X_test)
+</code></pre>
+
+<hr class="my-4">
+
+<h2 class="h6">Step 10: Evaluate the Model</h2>
+
+<pre class="bg-dark text-white p-3 rounded small"><code>
+from sklearn.metrics import classification_report, confusion_matrix, roc_curve, roc_auc_score
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+print(classification_report(y_test, y_pred))
+
+cm = confusion_matrix(y_test, y_pred, labels=pipeline.named_steps["classifier"].classes_)
+
+sns.heatmap(cm, annot=True, fmt="d", cmap="Blues",
+            xticklabels=pipeline.named_steps["classifier"].classes_,
+            yticklabels=pipeline.named_steps["classifier"].classes_)
+
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.title("Confusion Matrix")
+plt.show()
+
+classes = list(pipeline.named_steps["classifier"].classes_)
+positive_label = "Yes" if "Yes" in classes else classes[-1]
+positive_index = classes.index(positive_label)
+
+y_prob = pipeline.predict_proba(X_test)[:, positive_index]
+
+fpr, tpr, thresholds = roc_curve(y_test, y_prob, pos_label=positive_label)
+auc = roc_auc_score((y_test == positive_label).astype(int), y_prob)
+
+plt.plot(fpr, tpr, label="AUC = %.2f" % auc)
+plt.plot([0, 1], [0, 1], linestyle="--")
+plt.xlabel("False Positive Rate")
+plt.ylabel("True Positive Rate")
+plt.title("ROC Curve")
+plt.legend()
+plt.show()
+</code></pre>
+
+<hr class="my-4">
+
+<h2 class="h6">Step 11: Why Explainability Matters</h2>
+
+<p>
+In medical prediction, good accuracy is not enough. We also need to understand:
+</p>
+
+<ul>
+<li>which variables influence the model most</li>
+<li>why the model predicted disease for one patient</li>
+<li>whether the model relies on medically reasonable patterns</li>
+</ul>
+
+<p>
+In this exercise we use:
+</p>
+
+<ul>
+<li><strong>LIME</strong> for local explanation</li>
+<li><strong>SHAP</strong> for global and local explanation</li>
+</ul>
+
+<hr class="my-4">
+
+<h2 class="h6">Step 12: Get Transformed Feature Names</h2>
+
+<p>
+Because the model uses a preprocessing pipeline, we must recover the transformed feature names before interpreting the model.
+</p>
+
+<pre class="bg-dark text-white p-3 rounded small"><code>
+feature_names = pipeline.named_steps["preprocessing"].get_feature_names_out()
+
+print(feature_names)
+</code></pre>
+
+<hr class="my-4">
+
+<h2 class="h6">Step 13: Global Explanation with Logistic Regression Coefficients</h2>
+
+<p>
+Logistic Regression is interpretable because each transformed feature has a coefficient.
+</p>
+
+<p>
+A larger absolute coefficient means a stronger influence on the prediction.
+</p>
+
+<pre class="bg-dark text-white p-3 rounded small"><code>
+import numpy as np
+import pandas as pd
+
+coef = pipeline.named_steps["classifier"].coef_.ravel()
+
+coef_series = pd.Series(coef, index=feature_names).sort_values(key=np.abs, ascending=False)
+
+print(coef_series.head(15))
+</code></pre>
+
+<hr class="my-4">
+
+<h2 class="h6">Step 14: Visualize Global Feature Importance</h2>
+
+<pre class="bg-dark text-white p-3 rounded small"><code>
+coef_plot = coef_series.head(15).sort_values()
+
+plt.figure(figsize=(8, 6))
+coef_plot.plot(kind="barh")
+plt.title("Top 15 Logistic Regression Coefficients")
+plt.xlabel("Coefficient Value")
+plt.ylabel("Feature")
+plt.show()
+</code></pre>
+
+<hr class="my-4">
+
+<h2 class="h6">Step 15: Prepare Data for LIME and SHAP</h2>
+
+<p>
+LIME and SHAP will explain the classifier using the transformed features that are actually passed into the model.
+</p>
+
+<pre class="bg-dark text-white p-3 rounded small"><code>
+X_train_processed = pipeline.named_steps["preprocessing"].transform(X_train)
+X_test_processed = pipeline.named_steps["preprocessing"].transform(X_test)
+
+if hasattr(X_train_processed, "toarray"):
+    X_train_processed = X_train_processed.toarray()
+
+if hasattr(X_test_processed, "toarray"):
+    X_test_processed = X_test_processed.toarray()
+
+classifier = pipeline.named_steps["classifier"]
+class_names = [str(c) for c in classifier.classes_]
+</code></pre>
+
+<hr class="my-4">
+
+<h2 class="h6">Step 16: LIME — Explain One Prediction Locally</h2>
+
+<p>
+LIME explains one prediction by approximating the model around a single patient with a simpler interpretable model.
+</p>
+
+<pre class="bg-dark text-white p-3 rounded small"><code>
+# !pip install lime
+
+from lime.lime_tabular import LimeTabularExplainer
+
+lime_explainer = LimeTabularExplainer(
+    training_data=X_train_processed,
+    feature_names=feature_names.tolist(),
+    class_names=class_names,
+    mode="classification"
+)
+</code></pre>
+
+<hr class="my-4">
+
+<h2 class="h6">Step 17: Select One Patient for Local Explanation</h2>
+
+<p>
+Before explaining the prediction, display the selected patient clearly.
+</p>
+
+<pre class="bg-dark text-white p-3 rounded small"><code>
+i = 0
+
+print("Raw patient record:")
+display(X_test.iloc[[i]])
+
+pred_label = pipeline.predict(X_test.iloc[[i]])[0]
+pred_proba = pipeline.predict_proba(X_test.iloc[[i]])[0]
+
+prediction_summary = pd.DataFrame({
+    "predicted_class": [pred_label],
+    **{f"probability_{cls}": [pred_proba[j]] for j, cls in enumerate(classifier.classes_)}
+})
+
+print("Prediction summary:")
+display(prediction_summary)
+</code></pre>
+
+<hr class="my-4">
+
+<h2 class="h6">Step 18: Display LIME Explanation</h2>
+
+<p>
+This explanation shows which features pushed the prediction toward or away from heart disease for the selected patient.
+</p>
+
+<pre class="bg-dark text-white p-3 rounded small"><code>
+lime_exp = lime_explainer.explain_instance(
+    X_test_processed[i],
+    classifier.predict_proba,
+    num_features=10
+)
+
+lime_exp.show_in_notebook(show_table=True)
+</code></pre>
+
+<hr class="my-4">
+
+<h2 class="h6">Step 19: SHAP — Global Explanation</h2>
+
+<p>
+SHAP global explanation shows which transformed features influence the model most across the full dataset.
+</p>
+
+<pre class="bg-dark text-white p-3 rounded small"><code>
+# !pip install shap
+
+import shap
+
+shap_explainer = shap.LinearExplainer(classifier, X_train_processed)
+shap_values = shap_explainer(X_test_processed)
+
+shap.summary_plot(
+    shap_values.values,
+    X_test_processed,
+    feature_names=feature_names
+)
+</code></pre>
+
+<hr class="my-4">
+
+<h2 class="h6">Step 20: SHAP — Build Explanation Object with Correct Feature Names</h2>
+
+<p>
+This step ensures that local SHAP plots display the real transformed feature names instead of generic names such as Feature 0 or Feature 1.
+</p>
+
+<pre class="bg-dark text-white p-3 rounded small"><code>
+shap_explanation = shap.Explanation(
+    values=shap_values.values,
+    base_values=shap_values.base_values,
+    data=X_test_processed,
+    feature_names=feature_names
+)
+</code></pre>
+
+<hr class="my-4">
+
+<h2 class="h6">Step 21: SHAP Local Explanation — Force Plot</h2>
+
+<p>
+The force plot shows which features push the prediction higher and which features push it lower for one patient.
+</p>
+
+<pre class="bg-dark text-white p-3 rounded small"><code>
+shap.initjs()
+
+shap.force_plot(
+    shap_explanation.base_values[i],
+    shap_explanation.values[i],
+    features=shap_explanation.data[i],
+    feature_names=feature_names
+)
+</code></pre>
+
+<hr class="my-4">
+
+<h2 class="h6">Step 22: SHAP Local Explanation — Waterfall Plot</h2>
+
+<p>
+The waterfall plot explains the same prediction step by step, starting from the base value and adding each feature contribution until the final prediction is reached.
+</p>
+
+<pre class="bg-dark text-white p-3 rounded small"><code>
+shap.plots.waterfall(shap_explanation[i])
+</code></pre>
+
+<hr class="my-4">
+
+<h2 class="h6">Step 23: Display the Selected Patient in Transformed Feature Space</h2>
+
+<p>
+This optional step helps connect the explanation plots with the exact transformed values used by the classifier.
+</p>
+
+<pre class="bg-dark text-white p-3 rounded small"><code>
+instance_df = pd.DataFrame(
+    [X_test_processed[i]],
+    columns=feature_names,
+    index=[f"test_instance_{i}"]
+)
+
+display(instance_df.T.rename(columns={f"test_instance_{i}": "value"}).head(20))
+</code></pre>
+
+<hr class="my-4">
+
+<h2 class="h6">Analysis Questions</h2>
+
+<ul>
+<li>Which features are most important globally according to the logistic regression coefficients?</li>
+<li>Do LIME and SHAP highlight similar features for the same patient?</li>
+<li>Which features pushed the selected patient toward a heart disease prediction?</li>
+<li>Are the explanations medically reasonable based on the patient profile?</li>
+<li>What is the difference between global explanation and local explanation in this notebook?</li>
+</ul>
+
+<hr class="my-4">
+
+<h2 class="h6">Expected Output</h2>
+
+<ul>
+<li>Clean dataset</li>
+<li>Preprocessing pipeline</li>
+<li>Trained classification model</li>
+<li>Classification report</li>
+<li>Confusion matrix visualization</li>
+<li>ROC curve visualization</li>
+<li>Global coefficient-based feature importance</li>
+<li>LIME explanation for one patient</li>
+<li>SHAP summary plot</li>
+<li>SHAP force plot</li>
+<li>SHAP waterfall plot</li>
+</ul>
+
+<p class="text-muted small mb-0">
+This exercise demonstrates how to combine predictive modeling with interpretability using scikit-learn, LIME, and SHAP on a medical classification problem.
+</p>
+
+</div>
+</div>
+
+</div>
+</div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
