@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>ML Validation — Customer Churn</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    .mini { font-size: 0.93rem; }
+    .kbd-like{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      background:#f8f9fa; border:1px solid #e9ecef; border-radius:.375rem;
+      padding:.15rem .35rem; color:#111;
+    }
+    .muted-box { background:#fff; border:1px solid #e9ecef; border-radius:.6rem; padding:1rem; }
+    .pill { font-size: .82rem; }
+    .mono { font-family: ui-monospace, monospace; }
+    .row-ok { background: #eaf7ef; }
+    .row-bad { background: #fdecec; }
+  </style>
+</head>
+
+<body class="bg-light">
+<main class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-11">
+
+      <div class="card shadow-sm">
+        <div class="card-body">
+
+          <h1 class="h4 mb-2">Production ML Validation — Customer Churn Model</h1>
+          <p class="text-secondary mb-4">
+            Topics: Model validation, Confusion Matrix, Accuracy, Precision, Recall, F1
+          </p>
+
+          <div class="alert alert-info mb-4">
+            <strong>Scenario</strong><br>
+            You are an <strong>ML Engineer</strong>. Recently, your team deployed a
+            <strong>customer churn prediction model</strong> to production.
+            <br><br>
+            A monitoring job captured a small batch of predictions and their true outcomes.
+            You must validate the model behavior before trusting it.
+          </div>
+
+          <p class="mini mb-4">
+            <span class="kbd-like">Prediction</span> = model output,
+            <span class="kbd-like">Actual</span> = true outcome.
+            <br>
+            <span class="kbd-like">1</span> = churn, <span class="kbd-like">0</span> = stayed.
+            <br>
+            Positive class is fixed: <span class="kbd-like">Churn = 1</span>
+          </p>
+
+          <h2 class="h6">Step 1 — Label Each Row</h2>
+          <p class="mini mb-3">
+          For each row, choose the correct label. Please attach a screenshot of your labels after generating the report:
+            <span class="kbd-like">TP</span>, <span class="kbd-like">FP</span>,
+            <span class="kbd-like">TN</span>, <span class="kbd-like">FN</span>.
+          </p>
+
+          <div class="table-responsive mb-4">
+            <table class="table table-bordered align-middle text-center">
+              <thead class="table-light">
+                <tr>
+                  <th>#</th>
+                  <th>Prediction</th>
+                  <th>Actual</th>
+                  <th>Your Classification</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="rows"></tbody>
+            </table>
+          </div>
+
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <div class="muted-box h-100">
+                <div class="fw-semibold mb-2">Rules (Positive = 1)</div>
+                <ul class="mini mb-0">
+                  <li><span class="kbd-like">TP</span>: Pred=1, Actual=1</li>
+                  <li><span class="kbd-like">FP</span>: Pred=1, Actual=0</li>
+                  <li><span class="kbd-like">FN</span>: Pred=0, Actual=1</li>
+                  <li><span class="kbd-like">TN</span>: Pred=0, Actual=0</li>
+                </ul>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="muted-box h-100">
+                <div class="fw-semibold mb-2">Why this matters</div>
+                <ul class="mini mb-0">
+                  <li>FP → wasted retention actions</li>
+                  <li>FN → missed churn risk</li>
+                  <li>Precision/Recall show different failure modes</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex flex-wrap gap-2">
+            <button class="btn btn-primary btn-sm" id="btnReport">Generate Model Validation Report</button>
+            <button class="btn btn-outline-danger btn-sm" id="btnReset">Reset</button>
+          </div>
+
+          <div id="report" class="mt-4"></div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<script>
+  // Harder ordering: mixed cases (not TP then FP then FN then TN).
+  // Still includes all types across 6 rows.
+  const rawRows = [
+    {pred: 0, actual: 1}, // FN
+    {pred: 1, actual: 1}, // TP
+    {pred: 0, actual: 0}, // TN
+    {pred: 1, actual: 0}, // FP
+    {pred: 1, actual: 1}, // TP
+    {pred: 0, actual: 0}, // TN
+  ];
+
+  // Optional: shuffle once per load (keeps it less predictable)
+  function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  const rows = shuffle(rawRows);
+
+  function expectedLabel(pred, actual) {
+    if (pred === 1 && actual === 1) return "TP";
+    if (pred === 1 && actual === 0) return "FP";
+    if (pred === 0 && actual === 1) return "FN";
+    return "TN";
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById("rows");
+    tbody.innerHTML = "";
+    rows.forEach((r, i) => {
+      tbody.innerHTML += `
+        <tr>
+          <td>${i+1}</td>
+          <td>${r.pred}</td>
+          <td>${r.actual}</td>
+          <td>
+            <select class="form-select form-select-sm decision">
+              <option value="">Choose...</option>
+              <option value="TP">TP</option>
+              <option value="FP">FP</option>
+              <option value="TN">TN</option>
+              <option value="FN">FN</option>
+            </select>
+          </td>
+          <td class="mini">
+            <span class="badge text-bg-light pill">Not checked</span>
+          </td>
+        </tr>`;
+    });
+  }
+
+  function computeFromLabels() {
+    let TP=0, FP=0, FN=0, TN=0;
+    document.querySelectorAll(".decision").forEach(sel => {
+      if (sel.value==="TP") TP++;
+      if (sel.value==="FP") FP++;
+      if (sel.value==="FN") FN++;
+      if (sel.value==="TN") TN++;
+    });
+    return {TP, FP, FN, TN};
+  }
+
+  function markCorrectness() {
+    const trs = document.querySelectorAll("#rows tr");
+    let allSelected = true;
+    let correctCount = 0;
+
+    trs.forEach((tr,i)=>{
+      const sel = tr.querySelector(".decision");
+      const badge = tr.querySelector(".badge");
+      tr.classList.remove("row-ok","row-bad");
+
+      if(!sel.value){
+        allSelected = false;
+        badge.textContent="Missing";
+        badge.className="badge text-bg-warning pill";
+        tr.classList.add("row-bad");
+        return;
+      }
+
+      const correct = sel.value === expectedLabel(rows[i].pred, rows[i].actual);
+      if (correct) correctCount++;
+
+      badge.textContent = correct ? "Correct" : "Incorrect";
+      badge.className = correct
+        ? "badge text-bg-success pill"
+        : "badge text-bg-danger pill";
+
+      tr.classList.add(correct ? "row-ok" : "row-bad");
+    });
+
+    return {allSelected, correctCount, total: trs.length};
+  }
+
+  function fmt(x){ return Number.isFinite(x) ? x.toFixed(2) : "N/A"; }
+
+  function generateReport(){
+    const status = markCorrectness();
+    if (!status.allSelected) {
+      document.getElementById("report").innerHTML = `
+        <div class="alert alert-warning mb-0">
+          Please label all rows first.
+        </div>`;
+      return;
+    }
+
+    const {TP,FP,FN,TN} = computeFromLabels();
+    const total = TP+FP+FN+TN;
+
+    const acc = (TP+TN)/total;
+    const prec = TP/(TP+FP);
+    const rec = TP/(TP+FN);
+    const f1 = (2*prec*rec)/(prec+rec);
+
+    document.getElementById("report").innerHTML = `
+      <hr>
+      <h2 class="h6">Model Validation Report</h2>
+
+      <div class="alert alert-info mini">
+        Row-labeling score: <strong>${status.correctCount} / ${status.total}</strong>
+      </div>
+
+      <div class="muted-box mb-3">
+        <strong>Confusion Matrix (from your labels)</strong>
+        <div class="mono mt-2">
+          TP=${TP}, FP=${FP}, FN=${FN}, TN=${TN}
+        </div>
+      </div>
+
+      <div class="muted-box mb-3">
+        <strong>Performance Metrics</strong>
+        <ul class="mini mb-0">
+          <li>Accuracy = (TP + TN) / total = (${TP} + ${TN}) / ${total} = <strong>${fmt(acc)}</strong></li>
+          <li>Precision = TP / (TP + FP) = ${TP} / (${TP} + ${FP}) = <strong>${fmt(prec)}</strong></li>
+          <li>Recall = TP / (TP + FN) = ${TP} / (${TP} + ${FN}) = <strong>${fmt(rec)}</strong></li>
+          <li>F1 = 2 × (P × R) / (P + R) = <strong>${fmt(f1)}</strong></li>
+        </ul>
+      </div>
+
+      <div class="alert alert-secondary mini mb-0">
+        Next (in real production): compare this batch against historical metrics and investigate drifts.
+      </div>
+    `;
+  }
+
+  renderTable();
+  document.getElementById("btnReport").onclick = generateReport;
+  document.getElementById("btnReset").onclick = () => location.reload();
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
